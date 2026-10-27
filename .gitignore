@@ -1,0 +1,32 @@
+.env
+.env.local
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+*.egg-info/
+
+# local marketing assets — not meant for the public repo
+marketing/
+
+# local skill testing scratch area
+testing/
+
+# daily comment-candidate automation: drafts, scraped post data, API usage and logs stay local
+automation/output/
+automation/state/
+automation/logs/
+
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+/fk-*
+
+# Eval run archives: transcripts are model output on fixtures, useful locally,
+# noise in git. Keep grading.json if a run is worth citing; add it explicitly.
+evals/runs/*/transcripts.json
+
+# Private PRD review and rendering artifacts stay local.
+/output/prd-review/
+/tmp/pdfs/prd-review-20261027/
