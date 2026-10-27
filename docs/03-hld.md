@@ -3,6 +3,8 @@
 Version 0.1 | 27 October 2026 | Status: Proposed (not implemented)
 Implements: `02-prd.md` v1.0. Next: `04-lld.md`.
 
+Delivery planning amendment: [JW-01 release dependency plan](05-release-plan.md) defines the R1 prerequisite contracts and internal M1 milestone. The local API and browser capture both start in R3. ModelRunner, ingestion normalization, policy pinning, and minimum telemetry are R1 foundations; no later-release adapter is required to complete M1.
+
 ## 0. Hinglish summary
 
 Pehli release ke liye ek **local-first modular monolith** recommend kiya gaya hai: ek Python core (`jw` CLI + library), ek background worker process, SQLite database, aur content-addressed artifact folder. Claude Code / Codex ke slash commands sirf patle adapters hain jo `jw` ko call karte hain; saari deterministic logic (validation, dedup, state machines, hashes, authorisation checks) code mein hai, prompts mein nahi. Model ka kaam (extraction, drafting, review) ek `ModelRunner` port ke peeche hai, jo host agent ya API dono se chal sakta hai. Microservices nahi chahiye: ek user, kuch sau jobs per week, aur sabse bada risk duplicate email/submission hai, jise database ke unique constraints aur leases solve karte hain, network hops nahi.

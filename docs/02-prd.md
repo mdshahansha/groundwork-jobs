@@ -3,6 +3,8 @@
 Version 1.0 | 27 October 2026 | Status: Proposed for review (not implemented)
 Architecture: `03-hld.md` · Detailed design: `04-lld.md` (pending) · Target repository: a separate job-workspace repository (decided 27 Oct 2026)
 
+Delivery planning amendment (27 October 2026): [JW-01 release dependency plan](05-release-plan.md) governs release timing, prerequisite contracts, and the first usable milestone. Its explicit scheduling changes supersede release labels below; all other requirements remain unchanged. M1 is an internal R1 milestone, not a claim that the complete R1 release has passed.
+
 ## Document control
 
 | Version | Date | Change |
