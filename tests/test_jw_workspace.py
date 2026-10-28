@@ -50,8 +50,11 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(code, caught.exception.code)
 
     def test_local_flow_is_draft_only_no_provider_confirmation(self):
+        from test_jw_ranking import assessment
         corrected = self.ws.correct_claim(self.claim, "Built tested Python services.")
         self.ws.publish_profile()
+        ranking = self.ws.rank(self.job, [{"index": 0, "state": "supported", "claim_id": corrected["claim_id"]}], assessment())
+        self.assertEqual("review", ranking["recommendation"])
         for kind in ("draft_cv", "draft_letter"):
             task = self.tasks.create(self.job, kind, consent=True)["task_id"]
             packet = self.tasks.packet(task)
@@ -264,6 +267,32 @@ class WorkspaceTests(unittest.TestCase):
 
     def test_consent_required_before_model_packet_creation(self):
         self.assertCode("consent_required", self.tasks.create, self.job, "draft_cv")
+
+    def test_rank_checks_current_claims_and_hard_location(self):
+        from test_jw_ranking import assessment
+        mapping = [{"index": 0, "state": "supported", "claim_id": self.claim}]
+        result = self.ws.rank(self.job, mapping, assessment(location_eligible=False))
+        self.assertEqual("skip", result["recommendation"])
+        self.assertEqual("unassessed", result["credibility"])
+        request = Path(self.temp.name) / "rank.json"
+        request.write_text(canonical({"job_id": self.job, "mapping": mapping, "assessment": assessment()}), encoding="utf-8")
+        output = io.StringIO()
+        with redirect_stdout(output):
+            code = main(["--workspace", str(self.root), "rank", "--input", str(request)])
+        self.assertEqual(0, code)
+        self.assertEqual("review", json.loads(output.getvalue())["result"]["recommendation"])
+        self.ws.correct_claim(self.claim, "Built RabbitMQ services.")
+        self.ws.publish_profile()
+        self.assertCode("unknown_claim", self.ws.rank, self.job, mapping, assessment())
+
+    def test_transferable_mapping_cannot_claim_direct_support(self):
+        from test_jw_ranking import assessment
+        job = self.ws.add_job({"company": "Fixture Co", "title": "Engineer",
+                              "description": "Kafka needed", "requirements": ["Kafka"]})["job_id"]
+        mapping = [{"index": 0, "state": "supported", "claim_id": self.claim}]
+        self.assertCode("unsupported_mapping", self.ws.rank, job, mapping, assessment())
+        mapping[0]["state"] = "partial"
+        self.assertEqual("related", self.ws.rank(job, mapping, assessment())["requirement_matrix"][0]["evidence_label"])
 
 
 if __name__ == "__main__":

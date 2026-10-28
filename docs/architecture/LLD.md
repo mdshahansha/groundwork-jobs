@@ -7,6 +7,7 @@
 | `workspace.py` | Text sources, span claims, immutable corrections, publish gate, job snapshots, logical erasure, manual events | Public claims only enter disclosure views |
 | `tasks.py` | Packet/output validation, attempt/deadline caps, isolated review, private export | No model execution or ready export |
 | `csv_archive.py` | Byte identity, positional normalization, safe spreadsheet export | No historical application mapping/storage yet |
+| `ranking.py` | Versioned score/confidence, salary comparability, conservative experience and stable ordering | Candidate assessments; no semantic inference |
 | `cli.py` | Command schemas, bounded file reads, stable errors | No arbitrary command execution |
 
 Imported source identity is SHA-256 of exact input bytes. Confirmation identity

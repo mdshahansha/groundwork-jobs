@@ -215,12 +215,49 @@ class Workspace:
                 self.store.audit("manual_outcome", outcome_id)
         return {"outcome_id": outcome_id, "source": "manual", "provider_confirmed": False}
 
+    def rank(self, job_id, mapping, assessment):
+        from .ranking import score
+
+        with self.store.transaction():
+            dependencies = self.dependencies(job_id)
+            requirements = dependencies["job"]["requirements"]
+            require(isinstance(mapping, list) and len(mapping) == len(requirements),
+                    "invalid_schema", "Provide exactly one mapping for every stored requirement.")
+            evidence = {c["claim_id"]: c for c in dependencies["evidence"]}
+            states, matrix = {}, []
+            for item in mapping:
+                fields(item, {"index", "state", "claim_id"})
+                index, state, claim_id = item["index"], item["state"], item["claim_id"]
+                require(type(index) is int and 0 <= index < len(requirements) and index not in states,
+                        "invalid_schema", "Requirement index is duplicate or out of range.")
+                require(state in ("supported", "partial", "unsupported", "unknown"),
+                        "invalid_schema", "Unknown mapping state; hard constraints cannot be not_applicable.")
+                if state in ("supported", "partial"):
+                    string(claim_id, 100)
+                    require(claim_id in evidence, "unknown_claim", "Mapping requires current public evidence.")
+                    if state == "supported":
+                        phrase = re.escape(requirements[index].casefold())
+                        require(re.search(r"(?<!\w)" + phrase + r"(?!\w)", evidence[claim_id]["text"].casefold()) is not None,
+                                "unsupported_mapping", "Direct lexical support is absent; use partial or unknown.")
+                else:
+                    require(claim_id is None, "invalid_schema", "Unknown/unsupported mappings cannot cite a claim.")
+                states[index] = state
+                matrix.append(dict(item, requirement=requirements[index],
+                                   evidence_label="related" if state == "partial" else "candidate_assessed"))
+            result = score([states[i] for i in range(len(requirements))], [], assessment, utcnow()[:10])
+            result.update(job_id=job_id, requirement_matrix=sorted(matrix, key=lambda item: item["index"]),
+                          dependency_fingerprint=digest(dependencies),
+                          ranking_fingerprint=digest({"dependencies": dependencies, "mapping": sorted(matrix, key=lambda item: item["index"]),
+                                                      "assessment": assessment, "calculation": "calculations@1"}),
+                          assessment_origin="candidate_supplied_not_semantically_verified")
+            return result
+
     def status(self):
         return {"schema_version": 1, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],
-                "capabilities": {"text_sources": "available", "host_tasks": "available",
+                "capabilities": {"text_sources": "available", "host_tasks": "available", "ranking": "candidate_assessed",
                     "ready_export": "blocked_toolchain_and_quality", "pdf_import": "unsupported",
                     "send": "unsupported", "ats": "unsupported", "capture_api": "unsupported",
                     "restore": "unsupported", "scheduler": "unsupported"}}

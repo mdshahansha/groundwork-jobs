@@ -22,7 +22,9 @@ uses WAL, full synchronization and a ten-second busy timeout. One writer owns a
 transaction at a time. Individual connections are not shared between threads.
 The test suite creates one connection per concurrent worker.
 
-Remaining target components include PDF/OCR import, semantic mapping, ranking,
+Ranking arithmetic and candidate-assessed CLI ranking are implemented in
+`jw.ranking`; semantic requirement mapping remains unimplemented.
+Remaining target components include PDF/OCR import, semantic mapping,
 sandboxed rendering, quality gates, immutable employer artifacts, protected local
 API, provider action ownership, backup recovery and release evaluations. No
 unsupported component reports a successful gate or provider receipt.

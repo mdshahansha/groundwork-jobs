@@ -5,7 +5,8 @@
 This repository also contains the separate `groundwork-jobs` Python runtime in
 `src/jw`. The LinkedIn plugin below remains unchanged. The workspace is **not an
 R1 release**: it supports local text evidence, profile corrections, pasted jobs,
-bounded host-model tasks, private drafts and manual outcome records. It cannot
+candidate-assessed deterministic ranking, bounded host-model tasks, private
+drafts and manual outcome records. It cannot
 produce verified employer-ready PDFs or send applications.
 
 Python 3.11+ is required. Install from the repository root into a virtual environment:

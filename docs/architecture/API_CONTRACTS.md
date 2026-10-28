@@ -16,6 +16,7 @@ Invocation: `jw --workspace PRIVATE_DIRECTORY COMMAND --input REQUEST.json`.
 | claim-add | source_id, start, end | sensitivity, state (`active` or `conflict`) |
 | claim-correct | claim_id, text | None |
 | job-add | company, title, description, requirements (string list) | requisition |
+| rank | job_id, mapping, assessment | None |
 | task-create | job_id, kind (`draft_cv`, `draft_letter`, `review`), consent=true | draft_id (required only for review) |
 | task-packet, task-resume, draft-export | task_id | None |
 | task-submit | task_id, response | None |
@@ -54,3 +55,24 @@ An empty review does not pass rendering/visual/format gates.
 Manual outcomes: prepared, manual_applied, interview, offer, rejected, withdrawn.
 `effective_at` requires an ISO-8601 UTC offset and cannot be future-dated. Equal
 job/kind/normalized timestamp is idempotent. No provider confirmation is inferred.
+
+## Ranking
+
+`rank` is read-only and requires a published profile. `mapping` contains exactly
+one `{index, state, claim_id}` per stored job requirement. States are supported,
+partial, unsupported or unknown. The latter two require a null claim ID; the
+others require a current public claim. Direct support additionally requires a
+whole-phrase lexical match; this is not semantic verification. `not_applicable`
+cannot bypass hard eligibility. Preferred requirements are not yet stored and
+use the documented empty-list behavior. A changed profile is read on every call.
+
+`assessment` fields: title_alias_match (boolean/null), seniority_distance (integer
+0..20/null), domain (supported/partial/unsupported/unknown), location
+(exact/relocation/unclear/mismatch), location_eligible (boolean/null),
+candidate_salary and job_salary (salary objects/null), posted_on (YYYY-MM-DD/null),
+contact (official/named_recruiter/other/unknown). Optional freshness_window_days
+defaults to 30. Salary objects have min, max, currency, basis, period and optional
+hours_per_week. See [formulas and assumptions](SCORING.md). Unknowns and unassessed
+credibility retain review; explicit location ineligibility yields skip. The
+result includes score, confidence, per-component values, requirement matrix and
+input fingerprints. It never authorizes an external action or passes draft gates.

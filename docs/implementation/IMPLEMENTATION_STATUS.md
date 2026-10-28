@@ -15,7 +15,7 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
 | JW-05 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact assertions required; invented clauses rejected | Semantic entailment, approved paraphrases, labelled corpus |
 | JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
-| JW-07 | Not started | None | Not run | Delegated task stopped at usage limit; no code landed | Mapping, scoring formulas and fixtures |
+| JW-07 | Partially implemented | src/jw/ranking.py, workspace.py, cli.py; docs/architecture/SCORING.md | tests/test_jw_ranking.py; W.test_rank_checks_current_claims_and_hard_location; test_transferable_mapping_cannot_claim_direct_support | Exact weighted vectors, unknowns, CTC/base and hourly handling, overlap union, conservative months, CLI mapping and stable ties pass | Product approval of provisional formulas, semantic mapping, full hard-policy integration and preferred-requirement storage |
 | JW-08 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_model_output_does_not_gain_tool_authority; test_quota_resume_keeps_prior_draft_and_budget | Closed draft/review schemas, bounded bytes/attempts, unknown cost | Extraction/mapping/repair schemas, actual runner metering |
 | JW-09 | Blocked by unresolved dependency | src/jw/cli.py explicit block; feasibility report | W.test_cli_unavailable_capabilities_have_nonzero_machine_errors | No false ready export | Qualified renderer, sandbox, layout and format gates |
 | JW-10 | Partially implemented | src/jw/tasks.py | W.test_isolated_review_cannot_assert_readiness | Fresh packet excludes rationale/history | Visual checks, repairs, held-out corpus and recall |
@@ -37,6 +37,13 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 
 ## Actual verification
 
+Ranking follow-up: 205 full-suite tests passed, including 49 job-workspace tests.
+The independently installed 0.1.1 wheel passed all 49 job-workspace tests.
+The local flow now includes candidate-assessed ranking and a real CLI rank request.
+JW-07 remains partial: arithmetic and a safe manual-assessment path are implemented,
+but semantic mapping and full policy integration are not. No new ticket is marked
+fully complete by this checkpoint. The records below describe the previous baseline.
+
 - 2026-10-28, Windows/Python 3.12: 34 new tests passed (25 workspace + 9 CSV).
 - Full regression: 190 tests passed with src and existing validation dependencies on PYTHONPATH.
 - Release checker: 63 R1 Musts mapped; consistency passed.
@@ -57,7 +64,7 @@ No ready PDF or real submission receipt is claimed. See
 
 ## Resume order
 
-Complete purpose/channel disclosure and semantic assertions; add mapping and
-ranking; qualify rendering; implement six quality gates and bounded repairs;
+Complete purpose/channel disclosure and semantic assertions; finish semantic
+mapping and ranking policy integration; qualify rendering; implement six quality gates and bounded repairs;
 complete lifecycle/backup recovery and remaining M1 scenarios. Enable provider
 actions only after JW-11 through JW-16 safeguards pass.

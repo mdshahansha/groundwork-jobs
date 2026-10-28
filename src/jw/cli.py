@@ -14,6 +14,7 @@ COMMANDS = {
     "claim-add": ({"source_id", "start", "end"}, {"sensitivity", "state"}),
     "claim-correct": ({"claim_id", "text"}, set()),
     "job-add": ({"company", "title", "description", "requirements"}, {"requisition"}),
+    "rank": ({"job_id", "mapping", "assessment"}, set()),
     "task-create": ({"job_id", "kind", "consent"}, {"draft_id"}),
     "task-packet": ({"task_id"}, set()),
     "task-submit": ({"task_id", "response"}, set()),
@@ -48,6 +49,8 @@ def dispatch(ws, command, data):
         return ws.correct_claim(**data)
     if command == "job-add":
         return ws.add_job(data)
+    if command == "rank":
+        return ws.rank(**data)
     if command == "task-create":
         return tasks.create(**data)
     if command == "task-packet":

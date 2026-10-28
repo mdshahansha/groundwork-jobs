@@ -8,6 +8,8 @@
    contacts, evidence and conflicts. Contacts are explicitly part of every model packet.
 4. `job-add` stores an immutable pasted job snapshot. It always reports
    `credibility=unassessed`, `availability=unverified`, `recommendation=review`.
+   `rank` calculates deterministic relevance from current eligible claims and
+   candidate assessments, preserving unknowns and explicit hard location exclusions.
 5. `task-create` materializes a bounded CV/letter or isolated reviewer packet.
    `task-packet` returns it for explicit host use. No model request occurs automatically.
 6. `task-submit` accepts supported structured assertions or bounded review findings.

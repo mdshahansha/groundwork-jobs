@@ -1,5 +1,16 @@
 # Test strategy and checkpoint evidence
 
+Ranking follow-up: full suite **205 passed**, job-workspace subset **49 passed**.
+The built 0.1.1 wheel was installed independently; all 49 tests passed without
+source PYTHONPATH. Repository selftest, package synchronization and offline
+configuration checks also passed.
+Thirteen pure ranking cases cover exact score/confidence vectors, empty/unknown
+components, location exclusion, salary compatibility/normalization, malformed
+numbers, freshness, overlapping/partial-month experience, bounds, ambient Decimal
+context and deterministic tie order. Two workspace cases verify current claims,
+transferable evidence and CLI dispatch; the core synthetic flow now ranks before
+drafting. Earlier baseline counts below remain historical evidence.
+
 Synthetic fixtures only. No API keys, live applicant messages or paid calls.
 The new suite tests the local checkpoint, not full M1/R1 acceptance.
 
