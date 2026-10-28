@@ -10,6 +10,7 @@ venv/
 /dist/
 
 # local marketing assets — not meant for the public repo
+
 marketing/
 
 # local skill testing scratch area
