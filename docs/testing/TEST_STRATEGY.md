@@ -1,0 +1,41 @@
+# Test strategy and checkpoint evidence
+
+Synthetic fixtures only. No API keys, live applicant messages or paid calls.
+The new suite tests the local checkpoint, not full M1/R1 acceptance.
+
+```powershell
+$env:PYTHONPATH='src'
+python -m unittest discover -s tests -p 'test_jw_*.py'
+```
+
+Observed on 2026-10-28, Windows/Python 3.12: **34 tests passed**. This consists of
+25 workspace tests and 9 CSV utility tests. Initial failures exposed an overly
+broad Git-directory guard; the corrected guard protects this project checkout.
+Windows sandbox temporary-directory cleanup also required execution outside
+the sandbox. The final successful run did not skip any workspace test.
+
+Workspace coverage: import identity, classification, immutable corrections,
+conflict publication, restricted-data exclusion across packets/reviews/exports,
+invented compound assertions, unknown evidence, retry budget, tool injection,
+contact/version/date invalidation, unchanged private evidence reuse, eight
+concurrent task creations, immutable completed output, quota resume, isolated
+review, deletion descendants, transactional rollback, process exit before commit,
+expiry equality, malformed schemas, unsupported binaries, newer schemas, consent
+and explicit unsupported capabilities. The synthetic flow prepares CV and letter
+text drafts and records a manual outcome; it does not pass document quality gates.
+
+CSV coverage: exact original-byte hashing, UTF-8 BOM, explicit Windows-1252,
+duplicate/unknown headings, embedded newlines/quotes, invalid widths/quotes,
+5 MiB boundary, formula-safe headings/cells, deterministic exports and no global
+CSV-parser configuration mutation. Historical persistence/mapping remains absent.
+
+Clean wheel installation and the installed-wheel suite also passed (34 tests).
+The full legacy plus runtime suite passed all 190 tests. Repository selftest,
+frontmatter, actor schemas, offline configuration and Markdown references passed.
+The generated plugin package was synchronized and its selftest check passed.
+
+Remaining required tests include render/visual/format fixtures, actual model evaluations, semantic paraphrases,
+mapping/ranking, source parser sandbox escapes, old-backup erasure/replay,
+provider fault injection, approval races, local API security and mature-cohort
+metrics. Status and final validation results belong in IMPLEMENTATION_STATUS.md.
+No aggregate passing unit count substitutes for an unimplemented release gate.

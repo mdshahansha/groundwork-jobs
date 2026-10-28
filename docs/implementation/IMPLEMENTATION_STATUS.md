@@ -1,0 +1,63 @@
+# Job workspace implementation status
+
+Checkpoint: 2026-10-28. **Partial implementation, not M1 or R1 completion.**
+The pre-implementation audit found JW-01 planning complete, JW-24 specification
+checks partial, and no job-workspace runtime. Legacy LinkedIn tooling is separate.
+
+Paths are repository-relative. W = tests/test_jw_workspace.py;
+C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
+
+| Ticket | Implementation status | Files changed | Acceptance tests | Evidence | Blockers |
+|---|---|---|---|---|---|
+| JW-01 | Implemented and verified (planning only) | Existing docs/02-prd.md, docs/03-hld.md, docs/05-release-plan.md | tools/check_release_plan.py | 63 Must dispositions pass | Runtime release gates separate |
+| JW-02 | Partially implemented | docs/implementation/INTEGRATION_FEASIBILITY.md | Dated official-source inspection | Gmail/Distilly findings and fallback contracts | Live probes, renderer, adapter tests |
+| JW-03 | Partially implemented | src/jw/workspace.py, store.py, tasks.py | W.test_restriction_survives_candidate_confirmation_and_correction | Restricted text excluded across packets/reviews/exports | Purpose/channel exceptions, images, consent UX |
+| JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
+| JW-05 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact assertions required; invented clauses rejected | Semantic entailment, approved paraphrases, labelled corpus |
+| JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
+| JW-07 | Not started | None | Not run | Delegated task stopped at usage limit; no code landed | Mapping, scoring formulas and fixtures |
+| JW-08 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_model_output_does_not_gain_tool_authority; test_quota_resume_keeps_prior_draft_and_budget | Closed draft/review schemas, bounded bytes/attempts, unknown cost | Extraction/mapping/repair schemas, actual runner metering |
+| JW-09 | Blocked by unresolved dependency | src/jw/cli.py explicit block; feasibility report | W.test_cli_unavailable_capabilities_have_nonzero_machine_errors | No false ready export | Qualified renderer, sandbox, layout and format gates |
+| JW-10 | Partially implemented | src/jw/tasks.py | W.test_isolated_review_cannot_assert_readiness | Fresh packet excludes rationale/history | Visual checks, repairs, held-out corpus and recall |
+| JW-11 | Not started | None; external commands disabled | Unsupported-command test is boundary proof only | No action provider exists | Immutable action envelopes and approvals |
+| JW-12 | Not started | None | Provider faults not tested | No action provider exists | Reservations, fencing, uncertain-outcome recovery |
+| JW-13 | Not started | src/jw/cli.py blocks restore | W unsupported-command test | Restore disabled, not implemented | Durable recovery boundary, suppression/deletion reconciliation |
+| JW-14 | Not started | src/jw/workspace.py manual attribution only | W.test_local_flow_is_draft_only_no_provider_confirmation | Manual events never provider-confirmed | Message matching and authentic receipt evidence |
+| JW-15 | Not started | None | Not run | No follow-up capability | Approval, cancellation, suppression race contracts |
+| JW-16 | Partially implemented | src/jw/tasks.py, cli.py | W.test_local_flow_is_draft_only_no_provider_confirmation | Private export is not ready or sent | Full dry-run/simulation/preview effect matrix |
+| JW-17 | Not started | None; no HTTP listener | Capture command explicitly unsupported | No exposed endpoint | Protected API, Host/Origin/auth/CSRF |
+| JW-18 | Partially implemented | src/jw/contracts.py, workspace.py, cli.py | W.test_binary_parser_is_explicitly_unsupported; test_model_output_does_not_gain_tool_authority | Bounded text only; no fetch/shell/rendered HTML | PDF/OCR/archive sandbox, SSRF and XSS fixtures |
+| JW-19 | Not started | Minimal audit and usage fields only | Metrics acceptance not run | Cost unknown, not zero | Metric dictionary, cohorts, labelled release corpus |
+| JW-20 | Partially implemented | src/jw/store.py, workspace.py, tasks.py | W.test_process_exit_before_commit_preserves_canonical_state; test_completed_output_is_immutable_and_resume_reuses | Canonical SQLite and idempotent manual events | Reducer, pause/lease ownership, complete crash matrix |
+| JW-21 | Not started | Basic immutable job snapshots only | Full discovery tests not run | No discovery adapter | SourcePost/opportunity identity, pagination, reversible merge |
+| JW-22 | Partially implemented | src/jw/csv_archive.py, tests/test_jw_csv_archive.py | All 9 C tests | BOM/1252, duplicate headings, multiline, exact hash, safe export | Historical persistence, mapping, repeat-import identity |
+| JW-23 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_expiry_equality_rejects_submit; test_invalid_input_shapes_fail_closed | Aware UTC and half-open task expiry | Scheduler, DST, cap zones, partial-date experience |
+| JW-24 | Partially implemented | src/jw/contracts.py, cli.py; docs/architecture | W.test_invalid_input_shapes_fail_closed; release checker | Closed command contracts and stable errors | Full PRD schemas and traceability |
+| JW-25 | Partially implemented | tests/test_jw_workspace.py; docs/testing/TEST_STRATEGY.md | W.test_local_flow_is_draft_only_no_provider_confirmation | Synthetic import/correct/draft/private-export/manual-record flow | Ranking, renderer, all quality gates, complete M1 |
+
+## Actual verification
+
+- 2026-10-28, Windows/Python 3.12: 34 new tests passed (25 workspace + 9 CSV).
+- Full regression: 190 tests passed with src and existing validation dependencies on PYTHONPATH.
+- Release checker: 63 R1 Musts mapped; consistency passed.
+- Wheel built using isolated setuptools; installed into testing/jw-install.
+- Installed CLI help passed. Initial no-build-isolation attempt failed because
+  host setuptools was absent; declared isolated build dependencies resolved it.
+- Installed-wheel suite with source PYTHONPATH removed: all 34 tests passed.
+- Repository selftest: all phases clean after generated package sync. Frontmatter,
+  offline configuration, actor schemas and Markdown reference checks passed.
+- Initial broad Git guard rejected a home dotfiles repository. The corrected
+  checkout-specific guard passes. Windows sandbox temporary cleanup required
+  running the synthetic suite outside the sandbox.
+
+No paid model evaluations, live applications or complete R1 acceptance run.
+No ready PDF or real submission receipt is claimed. See
+[verification strategy](../testing/TEST_STRATEGY.md) and
+[integration gaps](INTEGRATION_FEASIBILITY.md).
+
+## Resume order
+
+Complete purpose/channel disclosure and semantic assertions; add mapping and
+ranking; qualify rendering; implement six quality gates and bounded repairs;
+complete lifecycle/backup recovery and remaining M1 scenarios. Enable provider
+actions only after JW-11 through JW-16 safeguards pass.
