@@ -1,7 +1,7 @@
 # AI Job Application Workspace — High-Level Design
 
-Version 0.1 | 27 October 2026 | Status: Proposed (not implemented)
-Implements: `02-prd.md` v1.0. Next: `04-lld.md`.
+Version 0.2 | 28 October 2026 | Status: Proposed (not implemented)
+Implements: `02-prd.md` v1.1. Next: `04-lld.md`.
 
 Delivery planning amendment: [JW-01 release dependency plan](05-release-plan.md) defines the R1 prerequisite contracts and internal M1 milestone. The local API and browser capture both start in R3. ModelRunner, ingestion normalization, policy pinning, and minimum telemetry are R1 foundations; no later-release adapter is required to complete M1.
 
@@ -197,6 +197,10 @@ Rules:
 - Reviewer tasks never receive the drafter's packet or reasoning, only the draft, evidence and policy (FR-DOC-06).
 - Packets are bounded: pinned profile version, only relevant claims, job snapshot, requirements, draft hashes, current findings, next task. Restricted claims are excluded unless the task is an approved ATS field mapping (NFR-PRV-01).
 - Packets and validated outputs are cached by `(task@version, input hash)`; a changed input hash is a miss.
+
+**R1 dependency closure.** `ingestion` exposes the import capability contract and normalized snapshot records before `ranking` consumes them. `ranking` and `verification` pin immutable policy versions from R1. `credibility` exposes an `unassessed` status without pretending the R2 indicator engine exists; local preparation requires candidate review. `orchestration` records per-step time and available model usage from R1; aggregate reporting remains R5. The minimum usable path uses HostAgentRunner or a verified API runner, built-in Distilly fallback, pasted job text, and the pinned renderer. Gmail and ATS connectors are not prerequisites.
+
+**Optional capability boundaries.** Empty research/style inputs and a versioned default claim-selection policy must not bypass any quality gate. Salary values with incompatible or unknown bases remain uncomparable. R1 export separates employer-ready documents from private evidence/manifest material and does not invoke the R4 application workflow. The local API and quick capture activate together in R3; R2 digest delivery stays local. R2 alert ingestion verifies read consent independently of R3 sending.
 
 ## 9. Key flows
 

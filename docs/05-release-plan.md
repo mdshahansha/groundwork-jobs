@@ -1,10 +1,10 @@
 # Job workspace release dependencies and first usable milestone
 
-Ticket: JW-01. Date: 27 October 2026.
+Ticket: JW-01. Date: 27 October 2026. Completed specification alignment: 28 October 2026.
 
 Status: planning deliverables complete; product implementation and runtime acceptance remain unverified.
 
-Sources: [PRD v1.0](02-prd.md), especially sections 4, 6, 9, 11 and 12; [HLD v0.1](03-hld.md), especially sections 8, 12 and 17.
+Sources: [PRD v1.1](02-prd.md), especially sections 4, 6, 9, 11 and 12; [HLD v0.2](03-hld.md), especially sections 8, 12 and 17. The 57 original R1 Must requirements were identified in PRD v1.0; six prerequisite/packaging/telemetry requirements are now explicitly promoted to R1.
 
 ## 1. Decision and scope
 
@@ -43,7 +43,7 @@ These are delivery choices within existing product capabilities. They do not set
 | R4 applications and comments | ATS adapters where verified, full manual handoff and answer mapping, confirmation handling, optional comments. | R3; verified destination capability or explicit manual fallback. | Submission evidence and ambiguous-outcome tests. Unsupported destination uses manual handoff, not a false automation success. |
 | R5 growth and reporting | Interview preparation, learning plans, analytics views, calendar, HTML reports, optional one-way Notion projection. | Existing profile/tracking contracts and relevant integrations. | Usability and denominator tests; reporting uses instrumentation collected since R1. |
 
-R2 may run career-page or permitted-feed discovery without Gmail. A disabled alert adapter is reported as disabled; the release must not claim its acceptance tests passed. If the product is marketed as supporting alert ingestion, its read-connector tests are required. Gmail outcome synchronization and sending still arrive in R3.
+R2 may run career-page or permitted-feed discovery without Gmail connected in an individual workspace. A disabled alert adapter is reported as disabled. FR-DIS-05 connector implementation and fixture tests remain mandatory for full R2; disconnected workspace behavior does not remove that release obligation. Gmail outcome synchronization and sending still arrive in R3.
 
 ### Phase 0 deferral policy
 
@@ -91,9 +91,9 @@ For normalized records, absent provider IDs, contact routes, salary, seniority, 
 | Unsupported action | Return unavailable capability with local export/manual-use guidance. | Report sent, submitted, confirmed, or successful simulation as a real action. |
 | Required gate/tool fails | Block or pause at that gate with a recovery step. | Mark gate not applicable because an optional integration was removed. |
 
-## 4. Original R1 Must requirement disposition
+## 4. R1 Must requirement disposition
 
-All 57 original R1 Must declarations in PRD section 6 appear below. “M1 reduced” is a milestone boundary, not fulfillment of the full requirement. Every reduction lists the R1 completion obligation. Prerequisites name contracts available earlier in M1 or before R1 completion; no row requires a live R2-R5 integration.
+All 57 original R1 Must declarations and six newly promoted declarations in PRD section 6 appear below (63 total). “M1 reduced” is a milestone boundary, not fulfillment of the full requirement. Every reduction lists the R1 completion obligation. Prerequisites name contracts available earlier in M1 or before R1 completion; no row requires a live R2-R5 integration.
 
 | Requirement | Delivery | Prerequisites | M1 behavior or remaining R1 completion obligation |
 | --- | --- | --- | --- |
@@ -154,6 +154,12 @@ All 57 original R1 Must declarations in PRD section 6 appear below. “M1 reduce
 | FR-ANS-02 | R1 completion | Meaning/unit/sensitivity rules | No implicit answer reuse in M1; full context checks required for answer bank release. |
 | FR-ANS-03 | R1 completion | Batch preparation and answer store | M1 single-job prompts; unknown-question batching completed before full R1. |
 | FR-SIM-01 | M1 reduced | Explicit execution mode | Simulate enabled local workflow; unsupported actions remain unavailable. Each later action adapter must add simulation tests before activation. |
+| FR-CFG-02 | M1 | Validated policy schema and version store | Pin immutable policies for ranking and manifests; invalidate dependent rankings after changes. R2 search reuses the contract. |
+| FR-DIS-01 | M1 core | Capability registry and import paths | Explicit supported/unsupported URL import; paste fallback. Search/history/pagination remain R2. |
+| FR-DIS-02 | M1 core | Snapshot/evidence store | Normalized records for paste/file jobs before ranking; unknown fields remain unknown. Adapter enrichment remains R2. |
+| FR-DIS-06 | M1 core | Listing availability field and source time | Known closed blocks; unverified requires review. Automatic re-fetch remains R2 and execution re-checks arrive with actions. |
+| FR-DOC-11 | M1 | Ready manifest and artifact hashes | Separate employer-ready CV/letter from private claim map/manifest; no submitted outcome from export. R4 retains form workflow. |
+| FR-ANL-01 | M1 core | Run/application IDs and task events | Collect timings, review activity and available usage; unknown cost explicit. Reports remain R5. |
 
 ### Should/Could and NFR handling
 
@@ -235,10 +241,14 @@ The full R1 gate additionally requires every R1-completion row, all declared inp
 
 | JW-01 planning acceptance | Evidence in this document | Runtime status |
 | --- | --- | --- |
-| Every original R1 Must has an available prerequisite or a declared reduced milestone behavior | Section 4 maps all 57 requirements and preserves completion obligations. Section 3 moves shared prerequisites earlier. | Not implemented by this ticket. |
+| Every R1 Must has an available prerequisite or a declared reduced milestone behavior | Section 4 maps all 63 current requirements and preserves completion obligations. Section 3 moves shared prerequisites earlier. | Not implemented by this ticket. |
 | No unavailable capability is reported as passed | Section 3 fallback table and M1-03/M1-12 define exact behavior. | Requires runtime verification. |
 | Clean-install core path needs no Gmail or ATS integration | Sections 2 and 6 define the model/renderer prerequisites; M1-01 specifies acceptance. | Requires runtime verification. |
 | Optional enrichment cannot bypass truthfulness gates | DP-09, fallback table and M1-04 preserve all six gates. | Requires runtime verification. |
 | Revised releases, dependency graph, decisions and numbered milestone checklist delivered | Sections 1, 2, 5 and 6. | Documentation complete. |
 
 Stop condition for JW-01: the PRD and HLD link to this delivery baseline, all original R1 Musts have a mapped disposition, and the document consistency check passes. Implementing the application, provider probes, or remaining review tickets is separate work. No release or runtime readiness is claimed here.
+
+### Reproducible specification check
+
+Run `python tools/check_release_plan.py` from the repository root. It checks coverage and uniqueness of R1 Must dispositions, requirement references, promoted release assignments, capture timing, and the M1 checklist/scenario inventory. It validates the specification only; it cannot prove that a clean installation already runs the workflow. Runtime scenarios M1-01..12 remain the implementation team's release evidence.

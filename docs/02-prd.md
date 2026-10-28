@@ -1,6 +1,6 @@
 # AI Job Application Workspace — Product Requirements Document
 
-Version 1.0 | 27 October 2026 | Status: Proposed for review (not implemented)
+Version 1.1 | 28 October 2026 | Status: Delivery baseline specified (not implemented)
 Architecture: `03-hld.md` · Detailed design: `04-lld.md` (pending) · Target repository: a separate job-workspace repository (decided 27 Oct 2026)
 
 Delivery planning amendment (27 October 2026): [JW-01 release dependency plan](05-release-plan.md) governs release timing, prerequisite contracts, and the first usable milestone. Its explicit scheduling changes supersede release labels below; all other requirements remain unchanged. M1 is an internal R1 milestone, not a claim that the complete R1 release has passed.
@@ -12,6 +12,7 @@ Delivery planning amendment (27 October 2026): [JW-01 release dependency plan](0
 | 0.1 | 27 Oct 2026 | Combined PRD/HLD/LLD draft (`job-application-platform-prd.md`). |
 | 0.2 | 27 Oct 2026 | First standalone PRD with FR/NFR IDs and release boundaries. |
 | 1.0 | 27 Oct 2026 | Full expansion. Every feature now has user stories, full requirement specifications, business rules, edge cases, error codes and metrics. Adds UI view specifications, command specifications, data inventory, metric definitions, 14 new features, risk register, a synthetic end-to-end case, a traceability matrix and appendices with example configuration and records. All v0.2 requirement IDs are kept unchanged so `03-hld.md` references stay valid. |
+| 1.1 | 28 Oct 2026 | JW-01: align release assignments with the delivery plan; promote R1 prerequisite contracts and telemetry; specify unavailable-feature behavior; move capture to R3; distinguish internal M1 from full R1. Requirement IDs are preserved. |
 
 ### How to read this document
 
@@ -199,10 +200,10 @@ Multi-user hosted service; bidirectional Notion sync; Typst/DOCX template parity
 | 3 | Onboarding and enrichment | `/setup`, `/expand`, history import | ONB | R1 | Must |
 | 4 | Search configuration | Policy file, validation, versioning | CFG | R1–R2 | Must |
 | 5 | Job import | URL, paste, file; snapshots | IMP | R1 | Must |
-| 6 | Discovery | Adapters, job-alert e-mails, career pages, cursors | DIS | R2 | Must |
-| 7 | Deduplication | Layered job and contact dedup | DED | R2–R3 | Must |
+| 6 | Discovery | R1 import contract and records; R2 search adapters and cursors | DIS | R1–R2 | Must |
+| 7 | Deduplication | R1 prior-application guard; R2 job merge; R3 contact dedup | DED | R1–R3 | Must |
 | 8 | Recruiter frequency | Configurable posting-frequency filter with coverage | FRQ | R2 | Must |
-| 9 | Credibility | Indicators, states, overrides | CRD | R2 | Must |
+| 9 | Credibility | R1 unassessed status; R2 indicators and overrides | CRD | R1 status / R2 assessment | Must |
 | 10 | Ranking | Hard constraints, requirement matrix, explainable score | RNK | R1 | Must |
 | 11 | Documents and quality gates | Draft, six gates, manifest | DOC | R1 | Must |
 | 12 | Action authorisation | Modes, campaigns, hash binding | AUT | R3 | Must |
@@ -221,20 +222,21 @@ Multi-user hosted service; bidirectional Notion sync; Typst/DOCX template parity
 | 25 | Profile lenses | Role-focused CV variants from the same facts | LNS | R1 | Should |
 | 26 | Salary normalisation | Currency, period, CTC vs base | SAL | R1 | Should |
 | 27 | Company research cards | Sourced, dated company facts | CMP | R1 | Should |
-| 28 | Quick capture | One-click job capture into the inbox | CAP | R2 | Could |
-| 29 | Notifications and digest | Daily/weekly digest, blocker alerts | NTF | R2 | Should |
+| 28 | Quick capture | One-click job capture through the protected local API | CAP | R3 | Could |
+| 29 | Notifications and digest | R2 local digest; R3 optional e-mail draft delivery | NTF | R2–R3 | Should |
 | 30 | Referral contacts | Candidate's own contacts and referral tracking | REF | R3 | Could |
 | 31 | Interview calendar | Interview dates, ICS export, reminders | CAL | R5 | Could |
 | 32 | Dry-run mode | Full pipeline with all external actions simulated | SIM | R1 | Must |
-| 33 | Application analytics | Funnel, time and cost per verified application | ANL | R5 | Should |
+| 33 | Application analytics | R1 minimum telemetry; R5 aggregate reports | ANL | R1 collection / R5 reports | Must / Should |
 
 ### 4.2 Release contents
 
 | Release | Theme | Included groups | Exit gate (summary; full gate in section 12) |
 | --- | --- | --- | --- |
-| R1 | Truthful documents | PRF, DST, ONB, CFG (core), IMP, RNK, DOC, TRK (manual), RES, ADM (core), SEC, ANS, LNS, SAL, CMP, SIM | Every Must FR passes; regression suite has zero critical document findings; recovery suite ≥ 99%. |
-| R2 | Discovery | DIS, DED (jobs), FRQ, CRD, CFG (full), CAP, NTF, ADM-02 | Dedup precision/recall targets met on labelled set; frequency logic passes coverage table tests. |
-| R3 | E-mail | AUT, EML, DED-02, SYN, REF | Zero duplicate sends in fault injection; Gmail matching accuracy ≥ 90% on labelled set. |
+| M1 (inside R1) | First usable path | Single CV import/correction, pasted job, matrix/rank, CV/letter, six gates, local package, manual tracking, local recovery and minimum telemetry | M1-01..12 in the delivery plan; this milestone does not satisfy the full R1 gate. |
+| R1 | Truthful documents | PRF, DST fallback, ONB, CFG core + CFG-02, IMP, DIS-01/02/06 core, DED-03, CRD status, RNK, DOC including DOC-11, TRK manual, RES, ADM core, SEC, ANS, SIM, ANL collection; optional LNS/SAL/CMP enrichment | Every R1 Must passes, including remaining M1 reductions; zero critical regression findings; recovery ≥ 99%; privacy and platform gates. |
+| R2 | Discovery | DIS full, DED-01, FRQ, CRD assessment, CFG full, NTF local, ADM-02, SEC-07 read access | Dedup precision/recall targets met; frequency coverage tests; alert connector fixtures pass even when a workspace leaves Gmail disconnected. |
+| R3 | E-mail and local UI | AUT, EML, DED-02, SYN, REF, protected API/UI, optional CAP and NTF e-mail drafts | Zero duplicate sends in fault injection; Gmail matching accuracy ≥ 90% on labelled set; API/capture access checks. |
 | R4 | Apply and comment | APP, CMT | Zero `confirmed` without evidence; handoff covers every unsupported destination. |
 | R5 | Grow | INT, UPS, RPT, CAL, ANL | Usability targets; report denominators verified. |
 
@@ -291,7 +293,7 @@ Each journey lists the trigger, the steps (candidate action → system response)
 2. Job-alert adapter reads only labelled alert e-mails since the last checkpoint; career-page adapter checks 12 watched companies.
 3. 140 items found → 61 after dedup → 12 above the relevance threshold.
 4. 3 shortlisted items have recruiter frequency `unknown`; policy is `include_for_review`, so they appear in a "Needs your review" group.
-5. Digest is generated (HTML file + optional e-mail draft to self); no outreach happens.
+5. Digest is generated locally as HTML; no outreach happens. Optional e-mail draft delivery starts in R3 with explicit connector permission.
 - **Requirements:** FR-DIS-01..06, FR-DED-01, FR-FRQ-01..03, FR-NTF-01.
 
 ### J5 — Recruiter frequency cannot be proven (P1, R2)
@@ -681,7 +683,7 @@ Each feature group has: overview, user stories, requirements, business rules, ed
 | `recruiter_frequency` | see FRQ | see FRQ |
 | `channels.<email|comment|ats>` | `mode` (`draft_only`/`approve_each_action`/`authorized_campaign`), `daily_limit`, `followup_days`, `allowed_hours` (`HH:MM-HH:MM`), `timezone` | `0 ≤ daily_limit ≤` hard cap (e-mail 20, comment 5, ATS 15; code constants) |
 
-**FR-CFG-02 Policy versioning — Must (R2).** Every search run and ranking pins the policy hash. The shortlist shows which policy produced it; changing the policy marks existing rankings `outdated` (not deleted).
+**FR-CFG-02 Policy versioning — Must (R1).** Every ranking and manifest pins an immutable policy hash from R1; R2 search runs use the same contract. The shortlist shows which policy produced it; changing the policy marks existing rankings `outdated` (not deleted). Invalid edits leave the previous valid policy active.
 
 **FR-CFG-03 Policy presets — Should (R1).** `/search config preset <name>` offers starting points (`india-onsite`, `remote-global`, `passive-weekly`) that the candidate edits. Presets are documented examples, not hidden defaults.
 
@@ -720,7 +722,9 @@ Each feature group has: overview, user stories, requirements, business rules, ed
 | Errors and recovery | No token / blocked / login wall → `NEEDS_PASTE` prompt; page is not a job → `ERR_NOT_A_JOB` with the reason; duplicate → link to existing opportunity. |
 | Acceptance | T-IMP-01: without `APIFY_TOKEN`, a LinkedIn URL prompts for paste and proceeds. T-IMP-02: re-import of the same URL with unchanged content creates no new snapshot. |
 
-**FR-DIS-01 Source adapter interface — Must (R2)**
+**FR-DIS-01 Source adapter interface — Must (R1 import contract, R2 discovery)**
+
+R1 requires explicit `fetch_by_url` support or `ERR_CAPABILITY_UNSUPPORTED` with paste fallback. Search, pagination, author history and conditional fetch remain R2. Declaring an interface does not claim its optional capabilities are implemented or verified.
 
 | Capability | Meaning |
 | --- | --- |
@@ -744,7 +748,9 @@ Each adapter also declares: access mechanism, required credential, rate limits, 
 | `job_alert_email` | `search` (over alert e-mails), `pagination` | Gmail read scope, label-scoped | R2 |
 | `board_feed:<name>` | Per board, declared after Phase 0 | Official feed/API only | R2+ |
 
-**FR-DIS-02 Normalised record — Must (R2)**
+**FR-DIS-02 Normalised record — Must (R1 record contract, R2 adapter enrichment)**
+
+R1 paste/file imports use this contract before ranking. Preserve stable local source/snapshot/opportunity IDs, raw text/hash, retrieval time, requirements and source spans. Missing provider IDs, dates, salary and contact routes remain explicitly unknown; do not fabricate them. Require candidate input for missing document-target fields. R2 adds adapter-derived enrichment without changing the record's evidence rules.
 
 | Field | Type | Notes |
 | --- | --- | --- |
@@ -781,7 +787,7 @@ Each adapter also declares: access mechanism, required credential, rate limits, 
 | Errors | Unknown layout → generic parser; low-confidence items go to review. |
 | Acceptance | T-DIS-05: fixture alert with 8 jobs → 8 source posts with message-ID evidence; a spoofed sender is ignored. |
 
-**FR-DIS-06 Freshness and closure checks — Must (R2).** Before preparation and again before any action, re-check that the listing still exists and offers an application path. Outcomes: `open`, `closed` (explicit evidence), `unverified` (cannot tell). HTTP 200 alone is insufficient; the page must still describe the opening.
+**FR-DIS-06 Freshness and closure checks — Must (R1 status contract, R2 automatic re-check).** R1 represents `open`, `closed` (explicit evidence), and `unverified` (cannot tell); pasted text defaults to `unverified` with an as-of time. Known closed listings block preparation. Unverified listings require explicit candidate review before local preparation. R2 re-fetches before preparation; action releases re-check again before execution. HTTP 200 alone is insufficient; the page must still describe the opening.
 
 **Edge cases**
 
@@ -886,6 +892,8 @@ Stored per assessment: `observed_count`, `window_start`, `window_end`, `coverage
 
 **FR-CRD-01 Three independent assessments — Must (R2).** Job fit (RNK), source credibility (CRD) and extraction confidence (DIS-02) are stored and displayed separately; none is folded into another.
 
+R1 prerequisite: store credibility as `unassessed` when no assessor is available and show "Credibility has not been checked." Keep it separate from fit and extraction confidence. Recommendation is `review`; the candidate may explicitly choose local document preparation. Never substitute `plausible`, clear a known block, or report an unavailable assessment as passed. Indicators, reassessment and overrides remain R2.
+
 **FR-CRD-02 Indicator catalogue — Must (R2)**
 
 | Code | Type | Signal | Effect |
@@ -969,7 +977,7 @@ Weight sets are versioned (`weights@1`); the `job-skill` legacy set (skills 30, 
 
 Transferable experience is never `supported`.
 
-**FR-RNK-04 `/rank` output — Must (R1).** Shortlist sorted by score with: score breakdown; top gaps; risk flags (credibility, frequency); freshness; recommended action (`prepare` ≥ threshold and no risk flags; `review` when flags or many unknowns; `skip` below threshold); excluded section with codes.
+**FR-RNK-04 `/rank` output — Must (R1).** Shortlist sorted by score with: score breakdown; top gaps; risk flags (credibility, frequency); freshness; recommended action (`prepare` ≥ threshold and no risk flags; `review` when flags, unavailable credibility, unverified listing availability or many unknowns; `skip` below threshold); excluded section with codes. Known hard exclusions still take precedence. In R1, missing author-history support is `unknown` with `coverage=none` if displayed, never an observed zero count. Explicit local preparation after review does not authorize outreach.
 
 **FR-RNK-05 Calibration — Should (R1).** After ≥ 50 candidate labels ("relevant / not relevant"), `/rank calibrate` proposes adjusted weights maximising top-5 agreement, shows before/after metrics, and creates a new weight version only on acceptance.
 
@@ -1093,7 +1101,7 @@ loop:
 
 **FR-DOC-10 Cover-letter rules — Must (R1).** Under 300 words by default; company facts only from the research card with sources; no generic enthusiasm phrases from a configurable banned list; the candidate's own phrasing preferred (style guide).
 
-**FR-DOC-11 Application packaging — Should (R1).** `/apply --package` creates a folder per application (`<company>-<req-id>/`) with only final materials and the claim map; never profile stores or internal notes.
+**FR-DOC-11 Application packaging — Must (R1; included in M1).** `/apply --package` creates a folder per application (`<company>-<req-id>/`) with an employer-ready directory for final CV/letter files and a separate private-review directory for the claim map and manifest; never profile stores or internal notes. This is local document export only. R4 retains answer sheets, destination checks, form mapping, submission and receipt reconciliation. Export does not mark an application submitted or confirmed.
 
 **Edge cases**
 
@@ -1491,7 +1499,7 @@ Always previews counts and paths; `profile` and `all` require typing the scope n
 
 **FR-SEC-06 Upload safety — Must (R1).** Archive limits (size, file count, depth 1), path traversal rejected, symbolic links ignored; PDF JavaScript and embedded files ignored.
 
-**FR-SEC-07 Least-privilege connectors — Must (R3).** Each connector requests the narrowest scope for the enabled features; enabling a feature that needs more scope asks for it then. Scopes in use are listed in the Integrations view.
+**FR-SEC-07 Least-privilege connectors — Must (R2 read access, R3 action access).** Each connector requests the narrowest scope for the enabled features; enabling a feature that needs more scope asks for it then. R2 alert ingestion needs verified read consent, independently of R3 sending and outcome sync. Scopes in use are listed in the Integrations view or CLI status before that view exists.
 
 **FR-SEC-08 Audit log — Must (R1).** Append-only events for profile changes, authorisations, external actions, overrides and deletions, with correlation IDs; viewable and exportable by the candidate.
 
@@ -1529,11 +1537,11 @@ Always previews counts and paths; `profile` and `all` require typing the scope n
 
 ### 6.27 Quick capture (CAP) — new
 
-**FR-CAP-01 — Could (R2).** A bookmarklet or share target sends the current page URL (and selected text) to the local API on `127.0.0.1` with a per-install token. Captured items enter the import inbox; nothing else happens automatically.
+**FR-CAP-01 — Could (R3).** A bookmarklet or share target sends the current page URL (and selected text) to the protected local API on `127.0.0.1` with a scoped per-install token. Captured items enter the import inbox; nothing else happens automatically. Activation depends on the R3 API access checks. R2 uses CLI URL/text/file import; no separate early capture server is required.
 
 ### 6.28 Notifications and digest (NTF) — new
 
-**FR-NTF-01 — Should (R2).** Digest (daily or weekly) of new shortlisted jobs, items needing review, blocked items, follow-ups due and outcomes; delivered as a local HTML file, desktop notification, or e-mail draft to self. Urgent alerts: `*_unknown` action, credential expiry, quota pause.
+**FR-NTF-01 — Should (R2 local delivery, R3 e-mail drafts).** Digest (daily or weekly) of new shortlisted jobs, items needing review, blocked items, follow-ups due and outcomes; R2 delivery is a local HTML file or desktop notification. E-mail draft delivery to self starts in R3 with explicit connector permission. Show follow-ups and action uncertainty only once those capabilities exist. Urgent alerts: `*_unknown` action, credential expiry, quota pause.
 
 ### 6.29 Referral contacts (REF) — new
 
@@ -1549,7 +1557,7 @@ Always previews counts and paths; `profile` and `all` require typing the scope n
 
 ### 6.32 Application analytics (ANL) — new
 
-**FR-ANL-01 — Should (R5).** Per application and in aggregate: candidate active minutes (from review and approval interactions), model cost, elapsed time from discovery to `ready` and to `submitted`. Reported with denominators; no causal claims.
+**FR-ANL-01 — Must (R1 collection); Should (R5 reports).** From R1, collect run/application IDs, step start/end, candidate review activity with idle exclusion, elapsed time to `ready`, and model usage/cost when available. Host-mediated cost that cannot be measured is explicitly unknown, never zero. Expose per-run measurements for R1 quality/usability gates. R5 adds aggregate reports, denominators, funnel views and elapsed time to `submitted` where that state has evidence. No causal claims.
 
 ## 7. Product interface — views
 
@@ -2142,23 +2150,24 @@ All are targets with explicit denominators and windows. No causal claims are mad
 
 **R1 — Truthful documents**
 
-- **Deliverables:** PRF, DST, ONB, CFG core, IMP, RNK, DOC, TRK manual, RES, ADM core, SEC, ANS, LNS, SAL, CMP, SIM
+- **Internal first milestone:** M1 covers source import, correction, pasted job, matrix/rank, CV/letter, all six gates, local package, manual tracking, recovery and minimum telemetry. M1-01..12 in [the delivery plan](05-release-plan.md) specify its runtime acceptance; they have not been executed by the planning ticket.
+- **Deliverables:** PRF, DST fallback, ONB, CFG core + CFG-02, IMP, DIS-01/02/06 core, DED-03, CRD status, RNK, DOC including DOC-11, TRK manual, RES, ADM core, SEC, ANS, SIM, ANL collection; optional LNS/SAL/CMP enrichment
 - **Prerequisites:** Phase 0 ADRs; LaTeX toolchain
-- **Acceptance gate:** All Must FRs pass; 0 critical findings on regression set; recovery ≥ 99%; NFR-PRV-01 = 0
+- **Acceptance gate:** All R1 Must FRs pass, including remaining M1 reductions; 0 critical findings on regression set; recovery ≥ 99%; NFR-PRV-01 = 0; applicable platform/NFR gates. No Gmail or ATS integration is required for the core workflow. Missing optional enrichment never skips a document gate.
 - **Main risks:** Toolchain variance across OSes
 - **Rollback:** Previous package + backup
 
 **R2 — Discovery**
 
-- **Deliverables:** DIS, DED, FRQ, CRD, CFG full, CAP, NTF, ADM-02
-- **Prerequisites:** R1; Gmail read for alerts
+- **Deliverables:** DIS full, DED-01, FRQ, CRD assessment, CFG full, NTF local, ADM-02, SEC-07 read access
+- **Prerequisites:** R1; verified read connector for alerts. Connecting Gmail is optional for an individual workspace, but FR-DIS-05 implementation and fixture tests remain mandatory for full R2.
 - **Acceptance gate:** M-04 and M-08 targets on labelled sets; FRQ coverage table tests
 - **Main risks:** Alert e-mail layouts change
 - **Rollback:** Disable adapter; manual import remains
 
 **R3 — E-mail**
 
-- **Deliverables:** AUT, EML, DED-02, SYN, REF
+- **Deliverables:** AUT, EML, DED-02, SYN, REF, protected local API/UI, optional CAP and NTF e-mail draft delivery
 - **Prerequisites:** R2; Gmail compose/send consent
 - **Acceptance gate:** M-10 = 0 under fault injection; Gmail matching ≥ 90% on labelled set
 - **Main risks:** Scope verification for Gmail
