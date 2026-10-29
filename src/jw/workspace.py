@@ -6,18 +6,12 @@ import re
 import uuid
 
 from .contracts import (MAX_BYTES, PROVENANCE, SENSITIVITY, VERSIONS, canonical,
-                        digest, fields, require, string, utcnow, instant)
+                        digest, fields, require, string, utcnow, instant, image_markup)
 from .store import Store
 
 
 def identifier(prefix):
     return prefix + "_" + uuid.uuid4().hex
-
-
-def disclosable(source, claim):
-    """One conservative policy for packets, drafts, reviews and exports."""
-    return (source["state"] == "active" and claim["state"] == "active"
-            and source["sensitivity"] == claim["sensitivity"] == "public")
 
 
 class Workspace:
@@ -41,6 +35,7 @@ class Workspace:
         require("\x00" not in text and not raw.startswith((b"%PDF", b"PK\x03\x04")),
                 "unsupported_format", "PDFs and archives require a qualified parser.")
         string(text, MAX_BYTES)
+        require(not image_markup(text), "unsupported_format", "Image containers require a qualified privacy review path.")
         sha = hashlib.sha256(raw).hexdigest()
         with self.store.transaction():
             existing = self.db.execute("SELECT * FROM sources WHERE sha256=?", (sha,)).fetchone()
@@ -99,6 +94,9 @@ class Workspace:
             self.db.execute("INSERT INTO claims VALUES (?,?,?,?,?,?,?)",
                             (new_id, source_id, text, 0, len(text), old["sensitivity"], "active"))
             self.db.execute("INSERT INTO source_links VALUES (?,?)", (source_id, old["source_id"]))
+            self.db.execute("INSERT INTO disclosure_rules SELECT ?,scopes FROM disclosure_rules WHERE claim_id=?",
+                            (new_id, claim_id))
+            self.db.execute("UPDATE disclosure_consents SET revoked=1 WHERE claim_id=?", (claim_id,))
             self.db.execute("UPDATE claims SET state='superseded' WHERE id=?", (claim_id,))
             self.db.execute("UPDATE profile SET published=0")
             self.store.audit("claim_corrected", claim_id)
@@ -128,11 +126,13 @@ class Workspace:
         return {"state": "published", "warning": "Source support is not independent verification."}
 
     def evidence(self):
+        from .privacy import Privacy
+        policy = Privacy(self)
         claims = self.db.execute("SELECT * FROM claims ORDER BY id").fetchall()
         return [{"claim_id": c["id"], "source_id": c["source_id"], "text": c["text"],
                  "provenance": s["provenance"], "sensitivity": c["sensitivity"]}
                 for c in claims for s in [self.store.one("sources", c["source_id"])]
-                if disclosable(s, c)]
+                if policy.preparation_allowed(s, c)]
 
     def add_job(self, data):
         fields(data, {"company", "title", "description", "requirements"}, {"requisition"})
@@ -190,6 +190,8 @@ class Workspace:
             for item in preview["source_ids"]:
                 self.db.execute("UPDATE sources SET raw=NULL,text='',state='deleted' WHERE id=?", (item,))
                 self.db.execute("UPDATE claims SET text='',state='revoked' WHERE source_id=?", (item,))
+                self.db.execute("UPDATE disclosure_consents SET revoked=1 WHERE claim_id IN "
+                                "(SELECT id FROM claims WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE tasks SET packet=NULL,output=NULL,state='erased' WHERE id IN "
                                 "(SELECT task_id FROM task_sources WHERE source_id=?)", (item,))
                 self.db.execute("INSERT OR IGNORE INTO deletions VALUES (?,?)", (item, utcnow()))
@@ -253,7 +255,7 @@ class Workspace:
             return result
 
     def status(self):
-        return {"schema_version": 1, "profile_published": bool(self.db.execute(
+        return {"schema_version": 2, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],

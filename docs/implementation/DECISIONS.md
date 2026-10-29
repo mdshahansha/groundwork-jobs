@@ -57,3 +57,12 @@ Publora POSTs now make one attempt: an idempotency header without a qualified
 provider guarantee does not justify retry after an ambiguous response. This
 intentional safety change also applies to the shared LinkedIn write client.
 See JW02_PROBE_RESULTS.md for executed cases and open acceptance conditions.
+
+## D-08: Restricted fields never enter CV preparation
+
+On 2026-10-29 the owner explicitly chose to keep restricted fields out of CVs.
+Per-application ATS/referral manual previews are the only supported exceptions,
+requiring both field rules and matching expiring consent. Reusable answers and
+candidate confirmation never substitute for consent. Source images are denied
+until a qualified image privacy path exists. See
+../architecture/DISCLOSURE_POLICY.md for schemas, commands and migration.

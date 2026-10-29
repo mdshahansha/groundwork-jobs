@@ -11,7 +11,7 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 |---|---|---|---|---|---|
 | JW-01 | Implemented and verified (planning only) | Existing docs/02-prd.md, docs/03-hld.md, docs/05-release-plan.md | tools/check_release_plan.py | 63 Must dispositions pass | Runtime release gates separate |
 | JW-02 | Partially implemented | src/jw/integrations.py; src/jw/tasks.py; lib/publora_client.py; tools/probe_distilly_profile.py; docs/implementation/JW02_PROBE_RESULTS.md | Integration contracts, actual wrapper fallbacks, no-retry POSTs, private ZIP and pinned profile writer probe | Offline contracts and Distilly storage mapping pass; no Docker; live sending skipped by owner | Actual Distilly host inference, durable Gmail sync/recovery and live provider qualification remain open |
-| JW-03 | Partially implemented | src/jw/workspace.py, store.py, tasks.py | W.test_restriction_survives_candidate_confirmation_and_correction | Restricted text excluded across packets/reviews/exports | Purpose/channel exceptions, images, consent UX |
+| JW-03 | Implemented and verified for supported runtime paths | src/jw/privacy.py; workspace.py; store.py; cli.py; docs/architecture/DISCLOSURE_POLICY.md | tests/test_jw_privacy.py plus existing packet/export privacy tests | Independent provenance/sensitivity, field rules, scoped consent, image denial, migration and owner-approved no-CV-exception policy | Image disclosure remains explicitly denied; provider execution and full document gates are separate tickets |
 | JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
 | JW-05 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact assertions required; invented clauses rejected | Semantic entailment, approved paraphrases, labelled corpus |
 | JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
@@ -36,6 +36,13 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-25 | Partially implemented | tests/test_jw_workspace.py; docs/testing/TEST_STRATEGY.md | W.test_local_flow_is_draft_only_no_provider_confirmation | Synthetic import/correct/draft/private-export/manual-record flow | Ranking, renderer, all quality gates, complete M1 |
 
 ## Actual verification
+
+2026-10-29 JW-03: 237 full-suite tests and 76 installed-wheel workspace tests
+passed. Ten new privacy/migration tests cover the owner-approved no-CV-exception
+policy, scoped manual exceptions, images, stale outputs and additive schema 2.
+Repository selftest, offline configuration and all 63 R1 Must mappings passed.
+JW-03 is complete for supported runtime paths; source-image disclosure remains
+denied. No live Gmail sending or Docker was used.
 
 2026-10-29 integration follow-up: 227 full-suite tests pass. The pinned Distilly
 writer executed successfully with synthetic input and a temporary owner root;

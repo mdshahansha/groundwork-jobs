@@ -3,13 +3,14 @@
 from datetime import datetime, timezone
 import hashlib
 import json
+import re
 
 MAX_BYTES = 1_000_000
 MAX_PACKET_BYTES = 64_000
 SENSITIVITY = {"public", "private", "restricted"}
 PROVENANCE = {"document", "candidate_confirmation"}
 TASK_KINDS = {"draft_cv", "draft_letter", "review"}
-VERSIONS = {"schema": "1", "prompt": "1", "policy": "1", "template": "text-1",
+VERSIONS = {"schema": "2", "prompt": "1", "policy": "2", "template": "text-1",
             "assets": "none", "lens": "neutral-1", "research": "unavailable",
             "calculation": "1", "model": "host-unspecified"}
 
@@ -46,8 +47,13 @@ def instant(value):
         require(parsed.tzinfo is not None and parsed.utcoffset() is not None,
                 "invalid_time", "Timestamp requires a UTC offset.")
         return parsed.astimezone(timezone.utc)
-    except (ValueError, TypeError, AttributeError):
+    except (ValueError, TypeError, AttributeError, OverflowError):
         raise WorkspaceError("invalid_time", "Use an ISO-8601 timestamp with offset.") from None
+
+
+def image_markup(text):
+    """Unsupported textual image containers are never qualified plain evidence."""
+    return bool(re.search(r"<\s*(?:[\w-]+:)?(?:svg|img|image)\b|data\s*:\s*image/", text, re.I))
 
 
 def fields(value, required, optional=()):
