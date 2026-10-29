@@ -46,3 +46,14 @@ images/fonts, or Docker. This explicitly supersedes the renderer choice in the
 target HLD for the first slice. Latin-only glyph support and one-page overflow
 rejection are exposed limits. Full factual/privacy/review gates remain required.
 See ../architecture/FIXED_RENDERER.md for the qualified path and measured evidence.
+
+## D-07: Integration probe disposition and explicit no-send choice
+
+On 2026-10-29 the owner prioritized the four remaining integration checks, then
+explicitly chose to skip live Gmail sending. Offline evidence must not be promoted
+to live provider proof. Profile storage mapping is separate from Distilly host
+inference. Private handoff packaging is separate from verified submission.
+Publora POSTs now make one attempt: an idempotency header without a qualified
+provider guarantee does not justify retry after an ambiguous response. This
+intentional safety change also applies to the shared LinkedIn write client.
+See JW02_PROBE_RESULTS.md for executed cases and open acceptance conditions.

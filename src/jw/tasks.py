@@ -201,3 +201,50 @@ class Tasks:
             path = write_new_pdf(output_path, pdf)
             self.store.audit("private_pdf_exported", task_id)
             return dict(report, path=path, warning="External export copy; erasure cannot recall this file. Full quality gates remain incomplete.")
+
+    def handoff_preview(self, cv_task_id, letter_task_id, output_path):
+        """Package current evidence-backed drafts for private manual review only."""
+        import hashlib
+        import io
+        from pathlib import Path
+        import zipfile
+        from .rendering import render_private_pdf
+
+        string(output_path, 4096)
+        path = Path(output_path).resolve()
+        require(path.suffix.lower() == ".zip" and path.parent.is_dir(),
+                "invalid_output", "Choose a ZIP path in an existing directory.")
+        with self.store.transaction():
+            files, answers, job_ids = {}, [], set()
+            for task_id, kind, filename in ((cv_task_id, "draft_cv", "cv.pdf"),
+                                           (letter_task_id, "draft_letter", "letter.pdf")):
+                task = self.store.one("tasks", task_id)
+                self._current(task)
+                require(task["kind"] == kind and task["state"] == "completed",
+                        "task_incomplete", "Provide completed CV and letter tasks.")
+                job_ids.add(task["job_id"])
+                packet, output = json.loads(task["packet"]), json.loads(task["output"])
+                self._validate(task, output)
+                files[filename], _ = render_private_pdf(packet["profile"], output["assertions"], kind)
+                for assertion in output["assertions"]:
+                    if assertion not in answers:
+                        answers.append(assertion)
+            require(len(job_ids) == 1, "job_mismatch", "Drafts must belong to the same job.")
+            files["answer-sheet.json"] = canonical({"ready": False, "supported_statements": answers,
+                "unanswered_fields": "Portal questions require candidate review; no inferred answers."}).encode()
+            manifest = {"schema_version": "1", "ready": False, "provider_confirmed": False,
+                "state": "private_handoff_preview", "submission_performed": False,
+                "files": {name: hashlib.sha256(data).hexdigest() for name, data in files.items()},
+                "warning": "Private drafts only. Quality gates incomplete. Export copies cannot be recalled."}
+            files["manifest.json"] = canonical(manifest).encode()
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+                for name, data in files.items():
+                    archive.writestr(name, data)
+            try:
+                with path.open("xb") as stream:
+                    stream.write(buffer.getvalue())
+            except FileExistsError:
+                require(False, "output_exists", "Output already exists; choose a new path.")
+            self.store.audit("private_handoff_exported", cv_task_id)
+            return dict(manifest, path=str(path))

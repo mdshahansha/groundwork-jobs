@@ -22,6 +22,8 @@ COMMANDS = {
     "task-resume": ({"task_id"}, set()),
     "draft-export": ({"task_id"}, set()),
     "draft-render": ({"task_id", "output_path"}, set()),
+    "profile-map": ({"job_id", "markdown"}, set()),
+    "handoff-preview": ({"cv_task_id", "letter_task_id", "output_path"}, set()),
     "delete-preview": ({"source_id"}, set()),
     "source-delete": ({"source_id", "confirm"}, set()),
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
@@ -66,6 +68,12 @@ def dispatch(ws, command, data):
         return tasks.private_export(**data)
     if command == "draft-render":
         return tasks.render_private(**data)
+    if command == "profile-map":
+        from .integrations import map_profile
+        with ws.store.transaction():
+            return map_profile(data["markdown"], ws.dependencies(data["job_id"])["evidence"])
+    if command == "handoff-preview":
+        return tasks.handoff_preview(**data)
     if command == "delete-preview":
         return ws.deletion_preview(**data)
     if command == "source-delete":

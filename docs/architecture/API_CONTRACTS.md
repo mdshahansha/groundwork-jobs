@@ -20,6 +20,8 @@ Invocation: `jw --workspace PRIVATE_DIRECTORY COMMAND --input REQUEST.json`.
 | task-create | job_id, kind (`draft_cv`, `draft_letter`, `review`), consent=true | draft_id (required only for review) |
 | task-packet, task-resume, draft-export | task_id | None |
 | draft-render | task_id, output_path (new .pdf file) | None |
+| profile-map | job_id, markdown | None |
+| handoff-preview | cv_task_id, letter_task_id, output_path (new .zip file) | None |
 | task-submit | task_id, response | None |
 | task-failure | task_id, reason (`quota`, `rate_limit`, `timeout`, `refusal`) | None |
 | delete-preview | source_id | None |
@@ -40,6 +42,12 @@ No external effect occurs.
 `draft-render` is a local filesystem export, not a ready export or a submission.
 Install `.[render]`; supply an existing private destination directory. It rejects
 existing files, unsupported glyphs and overfull pages. See [renderer limits](FIXED_RENDERER.md).
+
+`profile-map` maps manually supplied owner-profile Markdown to exact current
+public evidence; unsupported lines remain unassessed, never new claims.
+`handoff-preview` packages current same-job CV/letter private PDFs, a supported
+statement sheet and hash manifest. It remains not-ready and performs no
+submission. See [integration probe contracts](../implementation/JW02_PROBE_RESULTS.md).
 
 Example draft response body, using a real returned claim ID and its exact text:
 

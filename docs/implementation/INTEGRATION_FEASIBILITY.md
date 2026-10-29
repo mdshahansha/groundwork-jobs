@@ -1,5 +1,17 @@
 # JW-02 integration feasibility
 
+## 2026-10-29 executable contract follow-up
+
+See [measured probe results](JW02_PROBE_RESULTS.md) for the current disposition.
+The pinned Distilly owner-profile save utility and actual output mapping now pass
+a synthetic probe. Absence fallback, offline Gmail permission/reconciliation and
+history staging, actual Apify/manual wrappers, Publora single-attempt POSTs, and
+private ATS ZIP packaging have executable tests. These results supersede the
+corresponding NOT RUN rows in the historical investigation below, only within
+the stated offline boundaries. The owner explicitly skipped live sending.
+Distilly host inference and durable/live Gmail recovery remain open; JW-02 is
+still partial. No Docker, messages, remote drafts or applications were created.
+
 ## 2026-10-29 renderer decision and measured follow-up
 
 The owner approved fixed-template PDFs instead of Docker/custom LaTeX execution.

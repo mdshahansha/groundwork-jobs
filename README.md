@@ -3,7 +3,7 @@
 ## Groundwork job workspace (development checkpoint)
 
 This repository also contains the separate `groundwork-jobs` Python runtime in
-`src/jw`. The LinkedIn plugin below remains unchanged. The workspace is **not an
+`src/jw`. The workspace is **not an
 R1 release**: it supports local text evidence, profile corrections, pasted jobs,
 candidate-assessed deterministic ranking, bounded host-model tasks, private
 drafts and manual outcome records. It cannot
@@ -13,6 +13,13 @@ Optional fixed-template private PDFs: install `.[render]`, then use `draft-rende
 with a completed task ID and new PDF output path. No Docker or custom LaTeX is
 used. The initial renderer supports Latin text and one page; it rejects unsupported
 glyphs and overflow. These PDFs remain marked **PRIVATE DRAFT - NOT READY**.
+
+`profile-map` maps supplied owner-profile Markdown to current evidence.
+`handoff-preview` packages private CV/letter PDFs and supported statements into
+a ZIP for manual review, without submitting anything. See
+[integration probe results](docs/implementation/JW02_PROBE_RESULTS.md).
+The shared Publora client makes one POST attempt; ambiguous failures are not
+automatically retried, even when an idempotency header is present.
 
 Python 3.11+ is required. Install from the repository root into a virtual environment:
 
