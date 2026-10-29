@@ -18,8 +18,9 @@ Auth header: x-publora-key: sk_...
 
 Design note: this client is deliberately minimal. Skills call exactly one
 method per action, after the user has approved a draft rendered via
-`lib/approval.py`. All write methods retry on transient 408/429/5xx via the
-shared retry decorator.
+`lib/approval.py`. POSTs are attempted once: an ambiguous failure may follow
+a successful write. An Idempotency-Key header is still forwarded when supplied,
+but server-side deduplication is unverified and does not make retries safe.
 """
 from __future__ import annotations
 import os
@@ -331,7 +332,6 @@ class PubloraClient:
 
     # ---- Internals --------------------------------------------------------
 
-    @_retry()
     def _post(
         self,
         path: str,
