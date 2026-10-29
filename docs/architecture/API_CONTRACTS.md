@@ -1,4 +1,8 @@
-# CLI contracts, schema version 1
+# CLI contracts, storage schema version 2
+
+JW-03 adds `disclosure-rule`, `disclosure-grant`, `disclosure-revoke` and
+`disclosure-preview`. See [payloads and policy](DISCLOSURE_POLICY.md). Existing
+payloads remain compatible; stored policy-1 tasks require regeneration.
 
 No HTTP endpoints exist. Local process access relies on OS account/file access,
 not an application authentication token. The proposed protected API remains

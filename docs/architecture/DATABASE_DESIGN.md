@@ -1,5 +1,8 @@
 # SQLite schema and persistence
 
+Schema 2 adds field disclosure rules and application-bound consents through an
+additive transaction. See [migration and rollback](DISCLOSURE_POLICY.md).
+
 `workspace.sqlite3` is canonical. Schema 1 is the initial schema in `store.py`.
 Creation runs in an exclusive transaction; unsupported schema versions fail.
 No deployed older workspace schema is migrated by this checkpoint. Downgrade

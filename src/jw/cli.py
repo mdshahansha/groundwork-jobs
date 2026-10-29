@@ -10,6 +10,10 @@ from .tasks import Tasks
 from .workspace import Workspace
 
 COMMANDS = {
+    "disclosure-rule": ({"claim_id", "scopes"}, set()),
+    "disclosure-grant": ({"claim_id", "job_id", "purpose", "recipient", "expires_at", "confirm"}, set()),
+    "disclosure-revoke": ({"consent_id"}, set()),
+    "disclosure-preview": ({"claim_id", "job_id", "purpose", "recipient"}, {"consent_id", "media"}),
     "profile-set": ({"name", "email"}, set()),
     "claim-add": ({"source_id", "start", "end"}, {"sensitivity", "state"}),
     "claim-correct": ({"claim_id", "text"}, set()),
@@ -42,6 +46,12 @@ def dispatch(ws, command, data):
     tasks = Tasks(ws)
     if command in COMMANDS:
         fields(data, *COMMANDS[command])
+    if command.startswith("disclosure-"):
+        from .privacy import Privacy
+        policy = Privacy(ws)
+        action = {"disclosure-rule": policy.set_rule, "disclosure-grant": policy.grant,
+                  "disclosure-revoke": policy.revoke, "disclosure-preview": policy.preview}[command]
+        return action(**data)
     if command == "profile-set":
         return ws.set_profile(**data)
     if command == "profile-publish":

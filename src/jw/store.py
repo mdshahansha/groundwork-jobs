@@ -51,6 +51,13 @@ PRAGMA user_version=1;
 # Protect this application checkout, not a whole home with a dotfiles repository.
 CODE_CHECKOUT = Path(__file__).resolve().parents[2]
 
+PRIVACY_SCHEMA = (
+    "CREATE TABLE disclosure_rules (claim_id TEXT PRIMARY KEY REFERENCES claims(id), scopes TEXT NOT NULL)",
+    "CREATE TABLE disclosure_consents (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES claims(id), "
+    "job_id TEXT NOT NULL REFERENCES jobs(id), purpose TEXT NOT NULL, recipient TEXT NOT NULL, "
+    "expires_at TEXT NOT NULL, binding TEXT NOT NULL, revoked INTEGER NOT NULL CHECK(revoked IN (0,1)))",
+)
+
 
 class Store:
     def __init__(self, root, create=False):
@@ -79,7 +86,15 @@ class Store:
                             self.db.execute(statement)
                 self.db.execute("COMMIT")
                 version = 1
-            require(version == 1, "unsupported_schema", "Workspace schema is unsupported.")
+            if version == 1:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 1:
+                    for statement in PRIVACY_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=2")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            require(version == 2, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
                 self.db.rollback()

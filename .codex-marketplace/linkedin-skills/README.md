@@ -21,6 +21,11 @@ a ZIP for manual review, without submitting anything. See
 The shared Publora client makes one POST attempt; ambiguous failures are not
 automatically retried, even when an idempotency header is present.
 
+JW-03 privacy controls provide field rules and expiring per-application
+ATS/referral manual previews. Restricted fields stay out of CVs and model
+packets; source images are denied. Existing workspaces upgrade additively to
+schema 2. See [disclosure policy](docs/architecture/DISCLOSURE_POLICY.md).
+
 Python 3.11+ is required. Install from the repository root into a virtual environment:
 
 ```powershell
