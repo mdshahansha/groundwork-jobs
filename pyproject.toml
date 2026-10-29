@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "groundwork-jobs"
+version = "0.1.3"
+description = "Local, evidence-first job workspace (development checkpoint)"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+render = ["reportlab==4.4.9"]
+render-test = ["reportlab==4.4.9", "pypdf==6.10.0"]
+
+[project.scripts]
+jw = "jw.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

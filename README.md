@@ -1,5 +1,56 @@
 # LinkedIn Skills
 
+## Groundwork job workspace (development checkpoint)
+
+This repository also contains the separate `groundwork-jobs` Python runtime in
+`src/jw`. The workspace is **not an
+R1 release**: it supports local text evidence, profile corrections, pasted jobs,
+candidate-assessed deterministic ranking, bounded host-model tasks, private
+drafts and manual outcome records. It cannot
+produce verified employer-ready PDFs or send applications.
+
+Optional fixed-template private PDFs: install `.[render]`, then use `draft-render`
+with a completed task ID and new PDF output path. No Docker or custom LaTeX is
+used. The initial renderer supports Latin text and one page; it rejects unsupported
+glyphs and overflow. These PDFs remain marked **PRIVATE DRAFT - NOT READY**.
+
+`profile-map` maps supplied owner-profile Markdown to current evidence.
+`handoff-preview` packages private CV/letter PDFs and supported statements into
+a ZIP for manual review, without submitting anything. See
+[integration probe results](docs/implementation/JW02_PROBE_RESULTS.md).
+The shared Publora client makes one POST attempt; ambiguous failures are not
+automatically retried, even when an idempotency header is present.
+
+Python 3.11+ is required. Install from the repository root into a virtual environment:
+
+```powershell
+python -m venv .venv
+.venv/Scripts/python -m pip install .
+.venv/Scripts/python -m jw --workspace "$env:LOCALAPPDATA/Groundwork/private-workspace" init
+.venv/Scripts/python -m jw --workspace "$env:LOCALAPPDATA/Groundwork/private-workspace" status
+```
+
+No credentials, Gmail, ATS, Distilly, network service or paid model is required
+for local operations. Host model execution is manual and optional; inspect the
+disclosure packet before sharing it. Never keep candidate data inside this repo,
+another tracked folder, or a shared/synced directory without assessing exposure.
+The SQLite database is not encrypted by this application.
+
+The job runtime and its docs are source-repository components, not part of the
+generated LinkedIn plugin package. See
+[runtime architecture](https://github.com/mdshahansha/groundwork-jobs/blob/codex/job-workspace-implementation/docs/architecture/HLD.md),
+[commands and examples](https://github.com/mdshahansha/groundwork-jobs/blob/codex/job-workspace-implementation/docs/architecture/API_CONTRACTS.md),
+[tests](https://github.com/mdshahansha/groundwork-jobs/blob/codex/job-workspace-implementation/docs/testing/TEST_STRATEGY.md), and
+[all 25 ticket statuses](https://github.com/mdshahansha/groundwork-jobs/blob/codex/job-workspace-implementation/docs/implementation/IMPLEMENTATION_STATUS.md).
+
+For a source-checkout test run, set `PYTHONPATH=src` and run
+`python -m unittest discover -s tests -p 'test_jw_*.py'`.
+The full legacy suite also needs `requirements-dev.txt`.
+`python -m jw --help` lists commands. `unsupported_capability` means the feature
+is disabled, not successful. `profile_unpublished` requires correcting and
+publishing the profile; `stale_input` requires a new task. Do not edit the database
+to clear gates or restore a copied old database: restore safety is unfinished.
+
 A plugin with **12 LinkedIn skills** for Codex and Claude Code, maintained by
 [mdshahansha](https://github.com/mdshahansha).
 
