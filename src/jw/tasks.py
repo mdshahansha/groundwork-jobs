@@ -185,3 +185,19 @@ class Tasks:
             return {"ready": False, "classification": "private_review_material", "text": text,
                     "claim_map": output["assertions"], "fingerprint": task["fingerprint"],
                     "warning": "Rendering and all quality gates are required before employer-ready export."}
+
+    def render_private(self, task_id, output_path):
+        from .rendering import render_private_pdf, write_new_pdf
+
+        string(output_path, 4096)
+        with self.store.transaction():
+            task = self.store.one("tasks", task_id)
+            self._current(task)
+            require(task["kind"] in {"draft_cv", "draft_letter"} and task["state"] == "completed",
+                    "task_incomplete", "Complete a supported draft before rendering.")
+            packet, output = json.loads(task["packet"]), json.loads(task["output"])
+            self._validate(task, output)
+            pdf, report = render_private_pdf(packet["profile"], output["assertions"], task["kind"])
+            path = write_new_pdf(output_path, pdf)
+            self.store.audit("private_pdf_exported", task_id)
+            return dict(report, path=path, warning="External export copy; erasure cannot recall this file. Full quality gates remain incomplete.")

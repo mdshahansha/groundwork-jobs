@@ -19,6 +19,7 @@ Invocation: `jw --workspace PRIVATE_DIRECTORY COMMAND --input REQUEST.json`.
 | rank | job_id, mapping, assessment | None |
 | task-create | job_id, kind (`draft_cv`, `draft_letter`, `review`), consent=true | draft_id (required only for review) |
 | task-packet, task-resume, draft-export | task_id | None |
+| draft-render | task_id, output_path (new .pdf file) | None |
 | task-submit | task_id, response | None |
 | task-failure | task_id, reason (`quota`, `rate_limit`, `timeout`, `refusal`) | None |
 | delete-preview | source_id | None |
@@ -35,6 +36,10 @@ Success: `{"ok":true,"result":{...}}`, exit 0. Domain/input failure:
 Storage/OS errors use `storage_error`, exit 3. Disabled `send`, `ats-submit`,
 `ready-export`, `capture`, `restore` and `schedule` return `unsupported_capability`.
 No external effect occurs.
+
+`draft-render` is a local filesystem export, not a ready export or a submission.
+Install `.[render]`; supply an existing private destination directory. It rejects
+existing files, unsupported glyphs and overfull pages. See [renderer limits](FIXED_RENDERER.md).
 
 Example draft response body, using a real returned claim ID and its exact text:
 

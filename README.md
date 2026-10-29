@@ -9,6 +9,11 @@ candidate-assessed deterministic ranking, bounded host-model tasks, private
 drafts and manual outcome records. It cannot
 produce verified employer-ready PDFs or send applications.
 
+Optional fixed-template private PDFs: install `.[render]`, then use `draft-render`
+with a completed task ID and new PDF output path. No Docker or custom LaTeX is
+used. The initial renderer supports Latin text and one page; it rejects unsupported
+glyphs and overflow. These PDFs remain marked **PRIVATE DRAFT - NOT READY**.
+
 Python 3.11+ is required. Install from the repository root into a virtual environment:
 
 ```powershell

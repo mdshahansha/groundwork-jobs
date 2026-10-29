@@ -1,5 +1,15 @@
 # Test strategy and checkpoint evidence
 
+Fixed-renderer follow-up (2026-10-29): 57 workspace tests passed. Seven new renderer
+tests cover extraction, active-action absence, inert hostile markup, network/process
+tripwires, overflow, glyph rejection, deterministic bytes and exclusive output.
+One workspace test verifies restricted-data exclusion and revoked-source blocking.
+The synthetic CV and letter were rasterized and visually inspected. Install the
+`render-test` extra or updated requirements-dev.txt before running this suite.
+Full repository suite: 213 tests passed; selftest reported all phases clean.
+The installed 0.1.2 wheel with render-test extras passed all 57 workspace tests
+without importing the source checkout.
+
 Ranking follow-up: full suite **205 passed**, job-workspace subset **49 passed**.
 The built 0.1.1 wheel was installed independently; all 49 tests passed without
 source PYTHONPATH. Repository selftest, package synchronization and offline

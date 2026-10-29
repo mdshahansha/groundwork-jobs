@@ -21,6 +21,7 @@ COMMANDS = {
     "task-failure": ({"task_id", "reason"}, set()),
     "task-resume": ({"task_id"}, set()),
     "draft-export": ({"task_id"}, set()),
+    "draft-render": ({"task_id", "output_path"}, set()),
     "delete-preview": ({"source_id"}, set()),
     "source-delete": ({"source_id", "confirm"}, set()),
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
@@ -63,6 +64,8 @@ def dispatch(ws, command, data):
         return tasks.resume(**data)
     if command == "draft-export":
         return tasks.private_export(**data)
+    if command == "draft-render":
+        return tasks.render_private(**data)
     if command == "delete-preview":
         return ws.deletion_preview(**data)
     if command == "source-delete":

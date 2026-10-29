@@ -24,7 +24,9 @@ The test suite creates one connection per concurrent worker.
 
 Ranking arithmetic and candidate-assessed CLI ranking are implemented in
 `jw.ranking`; semantic requirement mapping remains unimplemented.
+The owner-approved fixed-template ReportLab backend renders private text drafts
+without executing LaTeX or using Docker; see [renderer contract](FIXED_RENDERER.md).
 Remaining target components include PDF/OCR import, semantic mapping,
-sandboxed rendering, quality gates, immutable employer artifacts, protected local
+full quality gates, immutable employer artifacts, protected local
 API, provider action ownership, backup recovery and release evaluations. No
 unsupported component reports a successful gate or provider receipt.

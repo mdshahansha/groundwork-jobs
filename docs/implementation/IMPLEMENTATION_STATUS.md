@@ -10,14 +10,14 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | Ticket | Implementation status | Files changed | Acceptance tests | Evidence | Blockers |
 |---|---|---|---|---|---|
 | JW-01 | Implemented and verified (planning only) | Existing docs/02-prd.md, docs/03-hld.md, docs/05-release-plan.md | tools/check_release_plan.py | 63 Must dispositions pass | Runtime release gates separate |
-| JW-02 | Partially implemented | docs/implementation/INTEGRATION_FEASIBILITY.md | Dated official-source inspection | Gmail/Distilly findings and fallback contracts | Live probes, renderer, adapter tests |
+| JW-02 | Partially implemented | docs/implementation/INTEGRATION_FEASIBILITY.md; src/jw/rendering.py; tools/probe_fixed_renderer.py | tests/test_jw_rendering.py; workspace PDF privacy test; visual fixture inspection | Owner-approved non-Docker renderer qualified for bounded Latin private drafts; official Gmail/Distilly findings | Distilly invocation/output mapping and remaining integration contract probes; Gmail recovery explicitly unresolved |
 | JW-03 | Partially implemented | src/jw/workspace.py, store.py, tasks.py | W.test_restriction_survives_candidate_confirmation_and_correction | Restricted text excluded across packets/reviews/exports | Purpose/channel exceptions, images, consent UX |
 | JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
 | JW-05 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact assertions required; invented clauses rejected | Semantic entailment, approved paraphrases, labelled corpus |
 | JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
 | JW-07 | Partially implemented | src/jw/ranking.py, workspace.py, cli.py; docs/architecture/SCORING.md | tests/test_jw_ranking.py; W.test_rank_checks_current_claims_and_hard_location; test_transferable_mapping_cannot_claim_direct_support | Exact weighted vectors, unknowns, CTC/base and hourly handling, overlap union, conservative months, CLI mapping and stable ties pass | Product approval of provisional formulas, semantic mapping, full hard-policy integration and preferred-requirement storage |
 | JW-08 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_model_output_does_not_gain_tool_authority; test_quota_resume_keeps_prior_draft_and_budget | Closed draft/review schemas, bounded bytes/attempts, unknown cost | Extraction/mapping/repair schemas, actual runner metering |
-| JW-09 | Blocked by unresolved dependency | src/jw/cli.py explicit block; feasibility report | W.test_cli_unavailable_capabilities_have_nonzero_machine_errors | No false ready export | Qualified renderer, sandbox, layout and format gates |
+| JW-09 | Partially implemented | src/jw/rendering.py, tasks.py, cli.py; docs/architecture/FIXED_RENDERER.md | Renderer overflow/glyph/injection/format probes; workspace privacy and staleness | Fixed-template private PDF path works without Docker or LaTeX execution | Full layout/visual/reviewer gates, required-format workflow, multilingual support |
 | JW-10 | Partially implemented | src/jw/tasks.py | W.test_isolated_review_cannot_assert_readiness | Fresh packet excludes rationale/history | Visual checks, repairs, held-out corpus and recall |
 | JW-11 | Not started | None; external commands disabled | Unsupported-command test is boundary proof only | No action provider exists | Immutable action envelopes and approvals |
 | JW-12 | Not started | None | Provider faults not tested | No action provider exists | Reservations, fencing, uncertain-outcome recovery |
@@ -36,6 +36,12 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-25 | Partially implemented | tests/test_jw_workspace.py; docs/testing/TEST_STRATEGY.md | W.test_local_flow_is_draft_only_no_provider_confirmation | Synthetic import/correct/draft/private-export/manual-record flow | Ranking, renderer, all quality gates, complete M1 |
 
 ## Actual verification
+
+2026-10-29 fixed-renderer follow-up: 57 workspace tests passed. Synthetic CV and
+letter PDFs were parsed and rasterized, then visually inspected. No Docker was
+used. Renderer output is explicitly private/not-ready; no entire additional ticket
+is marked complete. See FIXED_RENDERER.md in docs/architecture for limitations.
+Full regression: 213 tests passed; repository selftest and release-plan checks passed.
 
 Ranking follow-up: 205 full-suite tests passed, including 49 job-workspace tests.
 The independently installed 0.1.1 wheel passed all 49 job-workspace tests.

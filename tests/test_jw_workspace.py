@@ -294,6 +294,20 @@ class WorkspaceTests(unittest.TestCase):
         mapping[0]["state"] = "partial"
         self.assertEqual("related", self.ws.rank(job, mapping, assessment())["requirement_matrix"][0]["evidence_label"])
 
+    def test_pdf_export_filters_restricted_data_and_rejects_stale_source(self):
+        from pypdf import PdfReader
+        source = self.ws.import_source(b"PRIVATE-ID-123", sensitivity="restricted")["source_id"]
+        self.ws.add_claim(source, 0, 14)
+        self.ws.publish_profile()
+        task = self.draft()
+        self.tasks.submit(task, self.response())
+        destination = Path(self.temp.name) / "private.pdf"
+        result = self.tasks.render_private(task, str(destination))
+        self.assertFalse(result["ready"])
+        self.assertNotIn("PRIVATE-ID-123", PdfReader(destination).pages[0].extract_text())
+        self.ws.delete_source(self.source)
+        self.assertCode("source_deleted", self.tasks.render_private, task, str(Path(self.temp.name) / "stale.pdf"))
+
 
 if __name__ == "__main__":
     unittest.main()

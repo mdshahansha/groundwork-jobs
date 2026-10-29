@@ -1,5 +1,20 @@
 # JW-02 integration feasibility
 
+## 2026-10-29 renderer decision and measured follow-up
+
+The owner approved fixed-template PDFs instead of Docker/custom LaTeX execution.
+The Windows ReportLab 4.4.9 path is now implemented and qualified for bounded Latin
+private-draft fixtures; see [reproduction and hashes](../architecture/FIXED_RENDERER.md).
+CV and letter PDFs were generated, parsed and visually inspected. Seven renderer
+tests plus the workspace privacy/staleness test passed. This is a data-only API,
+not an OS sandbox, and it does not complete JW-09's full quality gates.
+
+The renderer findings below are the original 2026-10-28 LaTeX investigation and
+remain historical evidence; the fixed-backend decision supersedes that selection.
+JW-02 remains incomplete because Distilly invocation/output mapping and remaining
+integration contract probes have not been executed. Gmail recovery remains
+explicitly unresolved with no resend; no live Gmail operation was performed.
+
 Evidence date: **2026-10-28 (Asia/Calcutta)**. Status: **documentation investigation delivered; JW-02 acceptance INCOMPLETE**. This sidecar qualifies the integration assumptions in `docs/03-hld.md`, especially sections 7, 9.3, 11, 12 and ADR-006/008. It does not enable connectors or implement the other tickets.
 
 Only public documentation/source GETs and local source/tool discovery were performed. No mailbox was read, draft created, email sent, credential loaded, provider client instantiated, paid request made, or Distilly code installed/executed. The private review is neither reproduced nor modified. Runtime probes below are specifications, not passing test reports.

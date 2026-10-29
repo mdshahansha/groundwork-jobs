@@ -451,7 +451,7 @@ def run_fresh(argv) -> int:
         if dev.is_file():
             requirements += ["-r", str(dev)]
         if (clone / "pyproject.toml").is_file():
-            requirements.append(str(clone))
+            requirements.append(str(clone) + "[render-test]")
         install = subprocess.run([str(python), "-m", "pip", "install", "--quiet", *requirements],
                                  capture_output=True, timeout=900, **utf8_pipes())
         mark = PASS if install.returncode == 0 else FAIL

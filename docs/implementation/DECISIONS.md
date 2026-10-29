@@ -36,3 +36,13 @@ Publish only synthetic fixtures, runtime source and implementation docs. The
 private review backlog and source PDF remain ignored/untracked. This application
 checkpoint does not alter LinkedIn skill behavior. Repository-required patch
 versioning and release metadata are handled at publication time.
+
+## D-06: Approved fixed-template backend, no Docker
+
+On 2026-10-29 the product owner approved a fixed-template PDF backend and asked
+for implementation, commit and push. Initial document builds use pinned
+ReportLab with literal text only. No LaTeX/custom template execution, external
+images/fonts, or Docker. This explicitly supersedes the renderer choice in the
+target HLD for the first slice. Latin-only glyph support and one-page overflow
+rejection are exposed limits. Full factual/privacy/review gates remain required.
+See ../architecture/FIXED_RENDERER.md for the qualified path and measured evidence.

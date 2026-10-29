@@ -3,6 +3,11 @@
 Version 0.2 | 28 October 2026 | Status: Proposed (not implemented)
 Implements: `02-prd.md` v1.1. Next: `04-lld.md`.
 
+Renderer amendment (owner-approved, 29 October 2026): the first slice uses
+[fixed-template PDFs](architecture/FIXED_RENDERER.md), not Docker or executable
+custom LaTeX. References below to a sandboxed LaTeX renderer describe the original
+target and are superseded for this slice. Full factual/privacy/quality gates remain.
+
 Delivery planning amendment: [JW-01 release dependency plan](05-release-plan.md) defines the R1 prerequisite contracts and internal M1 milestone. The local API and browser capture both start in R3. ModelRunner, ingestion normalization, policy pinning, and minimum telemetry are R1 foundations; no later-release adapter is required to complete M1.
 
 ## 0. Hinglish summary
@@ -79,7 +84,7 @@ Scale assumptions (single user): ≤ 2,000 discovered items/week, ≤ 300 normal
 | Host adapters | `.claude/commands/*.md`, `.agents/skills/*`, `SKILL.md` | Thin; call `jw`. | No |
 | Local web UI | **React + TypeScript** SPA served by a small Python HTTP API on `127.0.0.1` | Review screens (diffs, PDF preview, authorisation) are hard in a terminal. | **Yes → R3** (action review). R1–R2 use CLI + generated HTML views. |
 | Node.js API | **Not used** | Would duplicate the Python domain layer. | — |
-| Document build | LaTeX in sandbox (FR-SEC-05); Typst later through the template interface | Matches the brief's existing templates. | Typst deferred |
+| Document build | Owner-approved fixed-template ReportLab for the first slice; no executable custom LaTeX | Decision D-06 (2026-10-29): literal text input, no Docker; see architecture/FIXED_RENDERER.md | Custom LaTeX and Typst deferred |
 | Model access | `ModelRunner` port: `HostAgentRunner`, `ApiRunner` | §8 | `ApiRunner` needed only for unattended runs |
 
 Exact library and runtime versions are selected from official sources during implementation; none are fixed here.

@@ -258,6 +258,6 @@ class Workspace:
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],
                 "capabilities": {"text_sources": "available", "host_tasks": "available", "ranking": "candidate_assessed",
-                    "ready_export": "blocked_toolchain_and_quality", "pdf_import": "unsupported",
+                    "private_pdf": "optional_fixed_template", "ready_export": "blocked_quality", "pdf_import": "unsupported",
                     "send": "unsupported", "ats": "unsupported", "capture_api": "unsupported",
                     "restore": "unsupported", "scheduler": "unsupported"}}
