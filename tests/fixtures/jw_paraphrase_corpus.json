@@ -1,0 +1,1014 @@
+{
+ "version": "1",
+ "note": "Synthetic. Labels follow from the applied edit.",
+ "rows": [
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 4 internal teams at Fixture Co.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for internal teams at Fixture Co.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Did not built Python services for 3 internal teams at Fixture Co.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built all Python services for 3 internal teams at Fixture Co.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Designed Python services for 3 internal teams at Fixture Co.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Built Python services for 3 internal teams at Fixture Co",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "built Python services for 3 internal teams at Fixture Co.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Built Python services for 3 internal teams at Fixture Co.",
+   "text": "Also built Python services for 3 internal teams at Fixture Co.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 41% in 2023.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by in 2023.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023 at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Did not reduced API latency by 40% in 2023.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced all API latency by 40% in 2023.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023 as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023 globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Designed API latency by 40% in 2023.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023 via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Reduced API latency by 40% in 2023",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "reduced API latency by 40% in 2023.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Reduced API latency by 40% in 2023.",
+   "text": "Also reduced API latency by 40% in 2023.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 22 Kubernetes clusters for Synthetic Bank.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained Kubernetes clusters for Synthetic Bank.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Did not maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained all 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Designed 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Maintained 12 Kubernetes clusters for Synthetic Bank",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "text": "Also maintained 12 Kubernetes clusters for Synthetic Bank.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service for 5 teams.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service in 2021.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Did not wrote integration tests for the billing service.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote all integration tests for the billing service.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Designed integration tests for the billing service.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Wrote integration tests for the billing service",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "wrote integration tests for the billing service.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Wrote integration tests for the billing service.",
+   "text": "Also wrote integration tests for the billing service.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 3 legacy databases to PostgreSQL.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated legacy databases to PostgreSQL.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Did not migrated 2 legacy databases to PostgreSQL.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated all 2 legacy databases to PostgreSQL.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Designed 2 legacy databases to PostgreSQL.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Migrated 2 legacy databases to PostgreSQL",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "migrated 2 legacy databases to PostgreSQL.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Migrated 2 legacy databases to PostgreSQL.",
+   "text": "Also migrated 2 legacy databases to PostgreSQL.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 7 months.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for months.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Did not supported the on-call rotation for 6 months.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported all the on-call rotation for 6 months.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Designed the on-call rotation for 6 months.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Supported the on-call rotation for 6 months",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "supported the on-call rotation for 6 months.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Supported the on-call rotation for 6 months.",
+   "text": "Also supported the on-call rotation for 6 months.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking for 5 teams.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking in 2021.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Did not studying AWS networking.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying all AWS networking.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Designed AWS networking.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Studying AWS networking",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "studying AWS networking.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Studying AWS networking.",
+   "text": "Also studying AWS networking.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 5 junior developers.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored junior developers.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Did not mentored 4 junior developers.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored all 4 junior developers.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Designed 4 junior developers.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Mentored 4 junior developers",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "mentored 4 junior developers.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Mentored 4 junior developers.",
+   "text": "Also mentored 4 junior developers.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL for 5 teams.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL in 2021.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Did not automated weekly reports with SQL.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated all weekly reports with SQL.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Designed weekly reports with SQL.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Automated weekly reports with SQL",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "automated weekly reports with SQL.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Automated weekly reports with SQL.",
+   "text": "Also automated weekly reports with SQL.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets for 5 teams.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets in 2021.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Managed budgets.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did all not manage budgets.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Designed not manage budgets.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Did not manage budgets",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "did not manage budgets.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Did not manage budgets.",
+   "text": "Also did not manage budgets.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team for 5 teams.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team in 2021.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Did not reviewed pull requests for the payments team.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed all pull requests for the payments team.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Designed pull requests for the payments team.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Reviewed pull requests for the payments team",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "reviewed pull requests for the payments team.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Reviewed pull requests for the payments team.",
+   "text": "Also reviewed pull requests for the payments team.",
+   "label": "preserves",
+   "category": "stopword_added"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 3 products.",
+   "label": "changes",
+   "category": "quantity"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for products.",
+   "label": "changes",
+   "category": "quantity_dropped_or_added"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products at Acme.",
+   "label": "changes",
+   "category": "entity"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Did not documented the deployment process for 2 products.",
+   "label": "changes",
+   "category": "negation"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented all the deployment process for 2 products.",
+   "label": "changes",
+   "category": "scope"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products as a senior engineer.",
+   "label": "changes",
+   "category": "seniority"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products, certified.",
+   "label": "changes",
+   "category": "credential"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products globally.",
+   "label": "changes",
+   "category": "new_fact"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Designed the deployment process for 2 products.",
+   "label": "changes",
+   "category": "verb_swap"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products via new app.",
+   "label": "changes",
+   "category": "short_word"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products.",
+   "label": "preserves",
+   "category": "exact"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Documented the deployment process for 2 products",
+   "label": "preserves",
+   "category": "no_final_period"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "documented the deployment process for 2 products.",
+   "label": "preserves",
+   "category": "lowercase_first"
+  },
+  {
+   "claim": "Documented the deployment process for 2 products.",
+   "text": "Also documented the deployment process for 2 products.",
+   "label": "preserves",
+   "category": "stopword_added"
+  }
+ ]
+}

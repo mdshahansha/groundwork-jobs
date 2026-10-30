@@ -1,9 +1,11 @@
-# CLI contracts, storage schema version 3
+# CLI contracts, storage schema version 4
 
 JW-05 adds `paraphrase-check` (`claim_id`, `text`), `paraphrase-approve`
-(`claim_id`, `text`, `confirm`, optional `acknowledge: ["new_content"]`) and
+(`claim_id`, `text`, `confirm`, `consent`, optional `acknowledge: ["new_content"]`),
+`paraphrase-review-packet` (`paraphrase_id`), `paraphrase-review-submit`
+(`paraphrase_id`, `response` with `output: {verdict, codes}` and `usage`) and
 `paraphrase-revoke` (`paraphrase_id`). Draft assertions may equal claim text or an
-approved paraphrase listed in the packet as `approved_paraphrases`. Rejections
+entailed paraphrase listed in the packet as `approved_paraphrases`. Rejections
 return reason codes only. See [semantic checks](SEMANTIC_CHECKS.md).
 
 JW-03 adds `disclosure-rule`, `disclosure-grant`, `disclosure-revoke` and
