@@ -13,7 +13,7 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-02 | Partially implemented | src/jw/integrations.py; src/jw/tasks.py; lib/publora_client.py; tools/probe_distilly_profile.py; docs/implementation/JW02_PROBE_RESULTS.md | Integration contracts, actual wrapper fallbacks, no-retry POSTs, private ZIP and pinned profile writer probe | Offline contracts and Distilly storage mapping pass; no Docker; live sending skipped by owner | Actual Distilly host inference, durable Gmail sync/recovery and live provider qualification remain open |
 | JW-03 | Implemented and verified for supported runtime paths | src/jw/privacy.py; workspace.py; store.py; cli.py; docs/architecture/DISCLOSURE_POLICY.md | tests/test_jw_privacy.py plus existing packet/export privacy tests | Independent provenance/sensitivity, field rules, scoped consent, image denial, migration and owner-approved no-CV-exception policy | Image disclosure remains explicitly denied; provider execution and full document gates are separate tickets |
 | JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
-| JW-05 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact assertions required; invented clauses rejected | Semantic entailment, approved paraphrases, labelled corpus |
+| JW-05 | Partially implemented | src/jw/semantics.py, tasks.py, workspace.py, store.py, cli.py; docs/architecture/SEMANTIC_CHECKS.md | tests/test_jw_semantics.py; W.test_factual_invention_unknown_reference_and_retry_cap; test_metric_rounding_and_unsupported_study_block | Exact or candidate-approved paraphrase only; guard-1 blocks quantity, entity, negation, scope and credential changes; 21-row labelled synthetic corpus; revocation, correction and deletion lifecycle | Model-based entailment, larger labelled release corpus with measured recall |
 | JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
 | JW-07 | Partially implemented | src/jw/ranking.py, workspace.py, cli.py; docs/architecture/SCORING.md | tests/test_jw_ranking.py; W.test_rank_checks_current_claims_and_hard_location; test_transferable_mapping_cannot_claim_direct_support | Exact weighted vectors, unknowns, CTC/base and hourly handling, overlap union, conservative months, CLI mapping and stable ties pass | Product approval of provisional formulas, semantic mapping, full hard-policy integration and preferred-requirement storage |
 | JW-08 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_model_output_does_not_gain_tool_authority; test_quota_resume_keeps_prior_draft_and_budget | Closed draft/review schemas, bounded bytes/attempts, unknown cost | Extraction/mapping/repair schemas, actual runner metering |
@@ -36,6 +36,12 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-25 | Partially implemented | tests/test_jw_workspace.py; docs/testing/TEST_STRATEGY.md | W.test_local_flow_is_draft_only_no_provider_confirmation | Synthetic import/correct/draft/private-export/manual-record flow | Ranking, renderer, all quality gates, complete M1 |
 
 ## Actual verification
+
+2026-10-30 JW-05: 247 full-suite tests passed with the pinned render extra
+installed (reportlab 4.4.9, pypdf 6.10.0). Ten new semantic tests cover the
+labelled guard corpus, approval and acknowledgement rules, stale tasks after
+revocation or correction, paraphrase erasure on deletion and the CLI commands.
+Schema 3 is additive. JW-05 stays partial: no model-based entailment exists.
 
 2026-10-29 JW-03: 237 full-suite tests and 76 installed-wheel workspace tests
 passed. Ten new privacy/migration tests cover the owner-approved no-CV-exception

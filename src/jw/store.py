@@ -58,6 +58,14 @@ PRIVACY_SCHEMA = (
     "expires_at TEXT NOT NULL, binding TEXT NOT NULL, revoked INTEGER NOT NULL CHECK(revoked IN (0,1)))",
 )
 
+# Candidate-approved rewordings of one claim. Never a new fact source: the claim stays the evidence.
+SEMANTIC_SCHEMA = (
+    "CREATE TABLE paraphrases (id TEXT PRIMARY KEY, claim_id TEXT NOT NULL REFERENCES claims(id), "
+    "text TEXT NOT NULL, guard TEXT NOT NULL, acknowledged TEXT NOT NULL, approved_at TEXT NOT NULL, "
+    "revoked INTEGER NOT NULL CHECK(revoked IN (0,1)), UNIQUE(claim_id, text))",
+)
+SCHEMA_VERSION = 3
+
 
 class Store:
     def __init__(self, root, create=False):
@@ -94,7 +102,15 @@ class Store:
                     self.db.execute("PRAGMA user_version=2")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
-            require(version == 2, "unsupported_schema", "Workspace schema is unsupported.")
+            if version == 2:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 2:
+                    for statement in SEMANTIC_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=3")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
                 self.db.rollback()

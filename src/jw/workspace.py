@@ -97,6 +97,8 @@ class Workspace:
             self.db.execute("INSERT INTO disclosure_rules SELECT ?,scopes FROM disclosure_rules WHERE claim_id=?",
                             (new_id, claim_id))
             self.db.execute("UPDATE disclosure_consents SET revoked=1 WHERE claim_id=?", (claim_id,))
+            # A reworded old claim is not support for the corrected one.
+            self.db.execute("UPDATE paraphrases SET revoked=1 WHERE claim_id=?", (claim_id,))
             self.db.execute("UPDATE claims SET state='superseded' WHERE id=?", (claim_id,))
             self.db.execute("UPDATE profile SET published=0")
             self.store.audit("claim_corrected", claim_id)
@@ -130,9 +132,52 @@ class Workspace:
         policy = Privacy(self)
         claims = self.db.execute("SELECT * FROM claims ORDER BY id").fetchall()
         return [{"claim_id": c["id"], "source_id": c["source_id"], "text": c["text"],
-                 "provenance": s["provenance"], "sensitivity": c["sensitivity"]}
+                 "provenance": s["provenance"], "sensitivity": c["sensitivity"],
+                 "approved_paraphrases": self.paraphrases(c["id"])}
                 for c in claims for s in [self.store.one("sources", c["source_id"])]
                 if policy.preparation_allowed(s, c)]
+
+    def paraphrases(self, claim_id):
+        return [row[0] for row in self.db.execute(
+            "SELECT text FROM paraphrases WHERE claim_id=? AND revoked=0 ORDER BY text", (claim_id,))]
+
+    def approve_paraphrase(self, claim_id, text, confirm, acknowledge=()):
+        """Candidate approval of one rewording. Guard hard blocks cannot be acknowledged away."""
+        from .semantics import ACKNOWLEDGEABLE, check
+
+        string(text, 2000)
+        require(confirm is True, "confirmation_required", "Review the wording and explicitly confirm.")
+        require(isinstance(acknowledge, (list, tuple)) and set(acknowledge) <= ACKNOWLEDGEABLE,
+                "invalid_schema", "Only new_content may be acknowledged.")
+        with self.store.transaction():
+            claim = self.store.one("claims", claim_id)
+            require(claim["state"] == "active", "claim_inactive", "Only current claims accept paraphrases.")
+            result = check(claim["text"], text)
+            require(result["verdict"] != "exact", "invalid_schema", "Exact claim text needs no approval.")
+            blocking = set(result["findings"]) - set(acknowledge)
+            require(not blocking, "paraphrase_rejected",
+                    "Paraphrase fails the guard: " + ",".join(sorted(blocking)) + ".")
+            existing = self.db.execute("SELECT id FROM paraphrases WHERE claim_id=? AND text=?",
+                                       (claim_id, text)).fetchone()
+            if existing:
+                self.db.execute("UPDATE paraphrases SET revoked=0 WHERE id=?", (existing["id"],))
+                paraphrase_id = existing["id"]
+            else:
+                paraphrase_id = identifier("par")
+                self.db.execute("INSERT INTO paraphrases VALUES (?,?,?,?,?,?,0)",
+                                (paraphrase_id, claim_id, text, result["guard"],
+                                 canonical(sorted(set(acknowledge) & set(result["findings"]))), utcnow()))
+            self.store.audit("paraphrase_approved", paraphrase_id)
+        return {"paraphrase_id": paraphrase_id, "findings": result["findings"], "guard": result["guard"],
+                "warning": "Approval rewords existing evidence; it is not independent verification."}
+
+    def revoke_paraphrase(self, paraphrase_id):
+        string(paraphrase_id, 100)
+        with self.store.transaction():
+            require(self.db.execute("UPDATE paraphrases SET revoked=1 WHERE id=?", (paraphrase_id,)).rowcount == 1,
+                    "not_found", "Entity not found.")
+            self.store.audit("paraphrase_revoked", paraphrase_id)
+        return {"paraphrase_id": paraphrase_id, "revoked": True}
 
     def add_job(self, data):
         fields(data, {"company", "title", "description", "requirements"}, {"requisition"})
@@ -189,6 +234,8 @@ class Workspace:
             preview = self.deletion_preview(source_id)
             for item in preview["source_ids"]:
                 self.db.execute("UPDATE sources SET raw=NULL,text='',state='deleted' WHERE id=?", (item,))
+                self.db.execute("UPDATE paraphrases SET text=id,revoked=1 WHERE claim_id IN "
+                                "(SELECT id FROM claims WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE claims SET text='',state='revoked' WHERE source_id=?", (item,))
                 self.db.execute("UPDATE disclosure_consents SET revoked=1 WHERE claim_id IN "
                                 "(SELECT id FROM claims WHERE source_id=?)", (item,))
@@ -255,7 +302,7 @@ class Workspace:
             return result
 
     def status(self):
-        return {"schema_version": 2, "profile_published": bool(self.db.execute(
+        return {"schema_version": 3, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],

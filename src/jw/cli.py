@@ -5,7 +5,7 @@ from pathlib import Path
 import sqlite3
 import sys
 
-from .contracts import MAX_BYTES, WorkspaceError, canonical, fields, parse_json, require
+from .contracts import MAX_BYTES, WorkspaceError, canonical, fields, parse_json, require, string
 from .tasks import Tasks
 from .workspace import Workspace
 
@@ -17,6 +17,9 @@ COMMANDS = {
     "profile-set": ({"name", "email"}, set()),
     "claim-add": ({"source_id", "start", "end"}, {"sensitivity", "state"}),
     "claim-correct": ({"claim_id", "text"}, set()),
+    "paraphrase-check": ({"claim_id", "text"}, set()),
+    "paraphrase-approve": ({"claim_id", "text", "confirm"}, {"acknowledge"}),
+    "paraphrase-revoke": ({"paraphrase_id"}, set()),
     "job-add": ({"company", "title", "description", "requirements"}, {"requisition"}),
     "rank": ({"job_id", "mapping", "assessment"}, set()),
     "task-create": ({"job_id", "kind", "consent"}, {"draft_id"}),
@@ -60,6 +63,15 @@ def dispatch(ws, command, data):
         return ws.add_claim(**data)
     if command == "claim-correct":
         return ws.correct_claim(**data)
+    if command == "paraphrase-check":
+        from .semantics import check
+        string(data["text"], 2000)
+        return check(ws.store.one("claims", data["claim_id"])["text"], data["text"])
+    if command == "paraphrase-approve":
+        return ws.approve_paraphrase(data["claim_id"], data["text"], data["confirm"],
+                                     data.get("acknowledge", []))
+    if command == "paraphrase-revoke":
+        return ws.revoke_paraphrase(data["paraphrase_id"])
     if command == "job-add":
         return ws.add_job(data)
     if command == "rank":
