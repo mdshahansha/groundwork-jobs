@@ -166,7 +166,7 @@ class PrivacyMigrationTests(unittest.TestCase):
             db.commit()
             db.close()
             store = Store(root)
-            self.assertEqual(3, store.db.execute("PRAGMA user_version").fetchone()[0])
+            self.assertEqual(4, store.db.execute("PRAGMA user_version").fetchone()[0])
             self.assertEqual("Synthetic", store.db.execute("SELECT name FROM profile").fetchone()[0])
             store.close()
             Store(root).close()

@@ -18,7 +18,9 @@ COMMANDS = {
     "claim-add": ({"source_id", "start", "end"}, {"sensitivity", "state"}),
     "claim-correct": ({"claim_id", "text"}, set()),
     "paraphrase-check": ({"claim_id", "text"}, set()),
-    "paraphrase-approve": ({"claim_id", "text", "confirm"}, {"acknowledge"}),
+    "paraphrase-approve": ({"claim_id", "text", "confirm", "consent"}, {"acknowledge"}),
+    "paraphrase-review-packet": ({"paraphrase_id"}, set()),
+    "paraphrase-review-submit": ({"paraphrase_id", "response"}, set()),
     "paraphrase-revoke": ({"paraphrase_id"}, set()),
     "job-add": ({"company", "title", "description", "requirements"}, {"requisition"}),
     "rank": ({"job_id", "mapping", "assessment"}, set()),
@@ -69,7 +71,11 @@ def dispatch(ws, command, data):
         return check(ws.store.one("claims", data["claim_id"])["text"], data["text"])
     if command == "paraphrase-approve":
         return ws.approve_paraphrase(data["claim_id"], data["text"], data["confirm"],
-                                     data.get("acknowledge", []))
+                                     data.get("acknowledge", []), data["consent"])
+    if command == "paraphrase-review-packet":
+        return ws.paraphrase_packet(data["paraphrase_id"])
+    if command == "paraphrase-review-submit":
+        return ws.submit_paraphrase_review(data["paraphrase_id"], canonical(data["response"]).encode())
     if command == "paraphrase-revoke":
         return ws.revoke_paraphrase(data["paraphrase_id"])
     if command == "job-add":

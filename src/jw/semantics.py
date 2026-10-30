@@ -8,7 +8,7 @@ paraphrase is accepted in model output. Findings are reason codes and never echo
 
 import re
 
-GUARD_VERSION = "guard-1"
+GUARD_VERSION = "guard-2"
 
 NUMBER = re.compile(r"[$€£₹]?\d+(?:[.,]\d+)*(?:\s?(?:%|percent|k|m|bn|ms|s|x|h|hours|years?|months?)(?![A-Za-z]))?",
                     re.IGNORECASE)
@@ -74,6 +74,7 @@ def check(claim, paraphrase):
     if added & CREDENTIALS:
         findings.append("credential_added")
     stems = {w[:5] for w in claim_words}
-    if any(len(w) > 3 and w[:5] not in stems for w in added - STOPWORDS - ESCALATION - CREDENTIALS):
+    # Every added content word counts, however short: "cut" can change a fact as much as "scaled".
+    if any(w[:5] not in stems for w in added - STOPWORDS - ESCALATION - CREDENTIALS):
         findings.append("new_content")
     return {"verdict": "reject" if findings else "guard_pass", "findings": findings, "guard": GUARD_VERSION}

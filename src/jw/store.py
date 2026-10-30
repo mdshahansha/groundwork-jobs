@@ -64,7 +64,13 @@ SEMANTIC_SCHEMA = (
     "text TEXT NOT NULL, guard TEXT NOT NULL, acknowledged TEXT NOT NULL, approved_at TEXT NOT NULL, "
     "revoked INTEGER NOT NULL CHECK(revoked IN (0,1)), UNIQUE(claim_id, text))",
 )
-SCHEMA_VERSION = 3
+# A paraphrase reaches evidence only after an independent host-model entailment review.
+# Rows approved under schema 3 default to needs_model: they fail closed until reviewed.
+REVIEW_SCHEMA = (
+    "ALTER TABLE paraphrases ADD COLUMN review TEXT NOT NULL DEFAULT 'needs_model'",
+    "ALTER TABLE paraphrases ADD COLUMN review_attempts INTEGER NOT NULL DEFAULT 0",
+)
+SCHEMA_VERSION = 4
 
 
 class Store:
@@ -108,6 +114,14 @@ class Store:
                     for statement in SEMANTIC_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=3")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 3:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 3:
+                    for statement in REVIEW_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=4")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")

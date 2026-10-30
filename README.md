@@ -26,10 +26,11 @@ ATS/referral manual previews. Restricted fields stay out of CVs and model
 packets; source images are denied. Existing workspaces upgrade additively to
 schema 2. See [disclosure policy](docs/architecture/DISCLOSURE_POLICY.md).
 
-JW-05 semantic checks let a draft use a reworded claim only after the candidate
-approves it. A deterministic guard blocks changed quantities, added names,
-flipped negations, stronger scope and new credentials; it is not semantic
-entailment. Workspaces upgrade additively to schema 3. See
+JW-05 semantic checks let a draft use a reworded claim only after three gates:
+a deterministic guard (changed quantities, added names, flipped negations,
+stronger scope, new credentials, any new content word), candidate approval, and
+an independent host-model entailment verdict. Workspaces upgrade additively to
+schema 4; paraphrases approved under schema 3 wait for review. See
 [semantic checks](docs/architecture/SEMANTIC_CHECKS.md).
 
 Python 3.11+ is required. Install from the repository root into a virtual environment:

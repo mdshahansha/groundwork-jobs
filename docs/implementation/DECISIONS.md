@@ -28,8 +28,8 @@ Source provenance and sensitivity are separate fields. Candidate confirmation
 does not declassify data. Restricted and private claims never enter model
 packets. Initial factual support accepts exact excerpts; human-confirmed
 paraphrase sources are explicit, not independent employment verification.
-JW-05 adds candidate-approved paraphrases behind a deterministic guard;
-model-based semantic entailment remains outstanding.
+JW-05 adds candidate-approved paraphrases behind a deterministic guard and a
+host-model entailment review. Neither is independent employment verification.
 
 ## D-05: Publication scope
 
