@@ -5,6 +5,7 @@ import json
 
 from .contracts import (MAX_PACKET_BYTES, TASK_KINDS, WorkspaceError, canonical, digest,
                         fields, instant, parse_json, require, string, utcnow)
+from .semantics import check
 from .workspace import identifier
 
 MAX_ATTEMPTS = 3
@@ -43,7 +44,7 @@ class Tasks:
                                                           "code": "unsupported_assertion|wrong_contact|style",
                                                           "assertion_index": "integer or null"}]}
             else:
-                packet["output_schema"] = {"assertions": [{"text": "exact supported claim text",
+                packet["output_schema"] = {"assertions": [{"text": "exact claim text or one of its approved_paraphrases",
                                                             "claim_id": "visible claim ID"}]}
             require(len(canonical(packet).encode()) <= MAX_PACKET_BYTES, "packet_too_large",
                     "Packet exceeds the 64000-byte disclosure budget; reduce selected evidence.")
@@ -105,8 +106,14 @@ class Tasks:
                 string(assertion["text"])
                 string(assertion["claim_id"], 100)
                 require(assertion["claim_id"] in evidence, "unknown_claim", "Assertion references unavailable evidence.")
-                require(assertion["text"] == evidence[assertion["claim_id"]]["text"],
-                        "unsupported_assertion", "Assertion is not exact supported text; semantic paraphrase review is unavailable.")
+                claim = evidence[assertion["claim_id"]]
+                if assertion["text"] == claim["text"] or assertion["text"] in claim["approved_paraphrases"]:
+                    continue
+                # Guard codes tell the host why; a passing guard is still not candidate approval.
+                findings = check(claim["text"], assertion["text"])["findings"]
+                require(False, "unsupported_assertion",
+                        "Assertion is neither exact claim text nor a candidate-approved paraphrase"
+                        + (" (" + ",".join(findings) + ")." if findings else "; approve it first."))
 
     def submit(self, task_id, raw):
         """Invalid results consume an attempt but never enter canonical output storage."""

@@ -13,9 +13,9 @@
 Imported source identity is SHA-256 of exact input bytes. Confirmation identity
 hashes the corrected claim ID plus replacement text. Claims use Unicode character
 offsets into decoded UTF-8 text, excluding an optional BOM. Every factual output
-assertion must equal its referenced eligible claim text. This deliberately narrow
-rule rejects unsupported additions and numerical changes; it does not implement
-semantic entailment or approved paraphrase evaluation.
+assertion must equal its referenced eligible claim text or a candidate-approved
+paraphrase of it (JW-05, guard-1). The guard rejects unsupported additions and
+numerical changes; it does not implement model-based semantic entailment.
 
 Profile publication requires name, email, active public evidence and no unresolved
 conflict claims. A correction supersedes the old claim and creates a new
