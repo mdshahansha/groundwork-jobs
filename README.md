@@ -26,6 +26,11 @@ ATS/referral manual previews. Restricted fields stay out of CVs and model
 packets; source images are denied. Existing workspaces upgrade additively to
 schema 2. See [disclosure policy](docs/architecture/DISCLOSURE_POLICY.md).
 
+JW-09 runs mechanical render and extracted-text gates on the PDF bytes (clipping,
+overlap, fonts, footer, headings, contact, reading order, unicode, placeholders,
+dates, letter target) and blocks unsupported required formats. Model visual review
+is not run, so nothing is ready. Workspaces upgrade to schema 7.
+
 JW-08 adds a bounded repair task (fixes only what a review flagged, stops after
 three rounds as blocked_quality), host-model claim extraction from public sources
 (spans must match the source and need candidate acceptance) and a usage report

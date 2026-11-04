@@ -407,10 +407,44 @@ class Tasks:
                     "task_incomplete", "Complete a supported draft before rendering.")
             packet, output = json.loads(task["packet"]), json.loads(task["output"])
             self._validate(task, output)
-            pdf, report = render_private_pdf(packet["profile"], output["assertions"], document_kind(task))
+            pdf, report = render_private_pdf(packet["profile"], output["assertions"], document_kind(task),
+                                             packet["untrusted_job"])
+            verification = self._record_verification(task, packet, output, pdf)
             path = write_new_pdf(output_path, pdf)
             self.store.audit("private_pdf_exported", task_id)
-            return dict(report, path=path, warning="External export copy; erasure cannot recall this file. Full quality gates remain incomplete.")
+            return dict(report, path=path, verification=verification,
+                        warning="External export copy; erasure cannot recall this file. Full quality gates remain incomplete.")
+
+    def _record_verification(self, task, packet, output, pdf):
+        import hashlib
+        from .rendering import expected_content
+        from .verification import verify
+
+        kind = document_kind(task)
+        result = verify(pdf, expected_content(packet["profile"], output["assertions"], kind,
+                                              packet["untrusted_job"]), packet["untrusted_job"])
+        verification_id = identifier("ver")
+        sha = hashlib.sha256(pdf).hexdigest()
+        self.db.execute("INSERT INTO verifications VALUES (?,?,?,?,?,?)",
+                        (verification_id, task["id"], sha, result["status"], canonical(result), utcnow()))
+        self.store.audit("verification_" + result["status"], verification_id)
+        return dict(result, verification_id=verification_id, pdf_sha256=sha)
+
+    def verify_draft(self, task_id):
+        """Render in memory and run gates 1-2 on the bytes. Writes no file; never marks ready."""
+        from .rendering import render_private_pdf
+
+        with self.store.transaction():
+            task = self.store.one("tasks", task_id)
+            self._current(task)
+            require(task["kind"] in DRAFT_KINDS and task["state"] == "completed",
+                    "task_incomplete", "Complete a supported draft before verification.")
+            packet, output = json.loads(task["packet"]), json.loads(task["output"])
+            self._validate(task, output)
+            pdf, report = render_private_pdf(packet["profile"], output["assertions"], document_kind(task),
+                                             packet["untrusted_job"])
+            return dict(self._record_verification(task, packet, output, pdf), template=report["template"],
+                        renderer_version=report["renderer_version"])
 
     def handoff_preview(self, cv_task_id, letter_task_id, output_path):
         """Package current evidence-backed drafts for private manual review only."""
@@ -435,7 +469,8 @@ class Tasks:
                 job_ids.add(task["job_id"])
                 packet, output = json.loads(task["packet"]), json.loads(task["output"])
                 self._validate(task, output)
-                files[filename], _ = render_private_pdf(packet["profile"], output["assertions"], kind)
+                files[filename], _ = render_private_pdf(packet["profile"], output["assertions"], kind,
+                                                        packet["untrusted_job"])
                 for assertion in output["assertions"]:
                     if assertion not in answers:
                         answers.append(assertion)

@@ -73,3 +73,49 @@ and stale/revoked-source rejection. These are bounded fixtures, not proof of the
 complete JW-09 visual-quality or reviewer-evaluation acceptance criteria.
 
 Reference: [ReportLab graphics/text API](https://docs.reportlab.com/reportlab/userguide/ch2_graphics/).
+
+## Mechanical gates 1-2 (JW-09, private-fixed@2)
+
+`private-fixed@2` adds one line to letters, `Application for <title> at
+<company>`, from the pinned job snapshot. CVs are unchanged apart from the
+template version, so the 2026-10-29 probe hashes above are for `@1` only.
+
+`jw draft-verify` (`task_id`) renders the draft in memory, writes no file, runs
+`mechanical-gates@1` on the bytes and stores the run in `verifications` (schema 7)
+with the PDF SHA-256. `draft-render` runs the same gates and returns them as
+`verification`. The checks read the PDF back with pypdf instead of trusting the
+renderer's layout report. Glyph boxes use Helvetica AFM ascender/descender
+metrics with ReportLab's width tables.
+
+| Gate | Check | Fails when |
+|---|---|---|
+| 1 | compiles | unreadable PDF or page count other than one |
+| 1 | transform | rotated, skewed or mirrored text |
+| 1 | text_clipping | a glyph box leaves the page inset by 36 points |
+| 1 | overlap | two text boxes intersect |
+| 1 | font_consistency | a font other than Helvetica, or a size outside 9/10/11/13/18 |
+| 1 | footer_collision | footer missing, duplicated, or above the lowest body line |
+| 1 | orphaned_heading | the heading has no body line after it |
+| 1 | excessive_whitespace, page_break_defects | not applicable: single final page |
+| 2 | contact_details | the profile name or e-mail is not an extracted line |
+| 2 | headings | the template heading is missing |
+| 2 | reading_order | warning, contact, heading, target, every assertion and footer not found in order (whitespace-insensitive, so wrapped tokens still match) |
+| 2 | unicode | U+FFFD, ligature or mojibake not in the inputs, or non-NFC text |
+| 2 | placeholders | `{{...}}`, TODO, TBD, `[Company]`-style brackets, lorem ipsum |
+| 2 | dates | an extracted year or month-year absent from the inputs |
+| 2 | target | letter target line differs from the job snapshot |
+| 2 | links | not applicable: the profile has no links |
+
+A job may state `required_formats` (`pdf`, `docx`, `txt`, `html`). Anything but
+`pdf` gives `status=blocked_input` naming the unsupported formats: no other format
+is produced or approximated. Status is `mechanical_passed`, `blocked_quality`
+(with `failed_checks`) or `blocked_input`, and `ready` is always false. The model
+visual review of page images is `not_run`; page fit, independent review, repair
+and manifest gates stay separate. Deleting a source scrubs the stored results of
+the drafts that used it. Glyph support is still the Windows-1252 Latin set:
+multilingual rendering needs a licensed, pinned Unicode font and remains open.
+
+Tests: `tests/test_jw_verification.py` proves every gate-1 check and the gate-2
+contact, order, target, placeholder, unicode and date checks fail on drawn defect
+PDFs, and that a drawn clean baseline passes. A 2026-11-04 sample letter was
+rasterized with Poppler and inspected: no clipping, overlap or missing text.

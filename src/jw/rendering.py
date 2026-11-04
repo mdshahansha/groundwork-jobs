@@ -7,7 +7,7 @@ import importlib.metadata
 
 from .contracts import fields, require, string
 
-TEMPLATE_VERSION = "private-fixed@1"
+TEMPLATE_VERSION = "private-fixed@2"
 REPORTLAB_VERSION = "4.4.9"
 PAGE_WIDTH, PAGE_HEIGHT = 595.2756, 841.8898
 MARGIN, FONT_SIZE, LEADING = 48, 11, 16
@@ -22,7 +22,25 @@ def _text(value, maximum):
     return value
 
 
-def render_private_pdf(profile, assertions, kind):
+WARNING = "PRIVATE DRAFT - NOT READY"
+FOOTER = "Private review only. Quality gates incomplete. Page 1 of 1."
+HEADINGS = {"draft_cv": "Curriculum vitae", "draft_letter": "Cover letter"}
+
+
+def target_line(job):
+    """Letters name the job snapshot's role and employer; gate 2 checks they match it."""
+    return None if job is None else f"Application for {job['title']} at {job['company']}"
+
+
+def expected_content(profile, assertions, kind, job=None):
+    """What a reader must extract, in order. Built from inputs, not from renderer output."""
+    target = target_line(job) if kind == "draft_letter" else None
+    sequence = [WARNING, profile["name"], profile["email"], HEADINGS[kind]]
+    sequence += ([target] if target else []) + [a["text"] for a in assertions] + [FOOTER]
+    return {"profile": profile, "heading": HEADINGS[kind], "target": target, "sequence": sequence}
+
+
+def render_private_pdf(profile, assertions, kind, job=None):
     """Return PDF bytes + deterministic layout report; never evaluate input markup.
 
     The only ReportLab text primitive is drawString. No Paragraph/XML parser,
@@ -38,6 +56,10 @@ def render_private_pdf(profile, assertions, kind):
         fields(assertion, {"text", "claim_id"})
         _text(assertion["text"], 2000)
         string(assertion["claim_id"], 100)
+    target = target_line(job) if kind == "draft_letter" else None
+    if target is not None:
+        _text(job["title"], 200)
+        _text(job["company"], 200)
     require(sum(len(a["text"]) for a in assertions) <= 20000,
             "input_too_large", "Render text exceeds 20000 characters.")
     try:
@@ -79,10 +101,12 @@ def render_private_pdf(profile, assertions, kind):
         for _ in range(gap):
             lines.append(("", FONT_SIZE))
 
-    append_text("PRIVATE DRAFT - NOT READY", 10, 1)
+    append_text(WARNING, 10, 1)
     append_text(profile["name"], 18)
     append_text(profile["email"], FONT_SIZE, 1)
-    append_text("Curriculum vitae" if kind == "draft_cv" else "Cover letter", 13, 1)
+    append_text(HEADINGS[kind], 13, 1)
+    if target is not None:
+        append_text(target, FONT_SIZE, 1)
     for assertion in assertions:
         append_text(assertion["text"], FONT_SIZE, 1)
 
@@ -105,7 +129,7 @@ def render_private_pdf(profile, assertions, kind):
         canvas.setFont("Helvetica", block["size"])
         canvas.drawString(block["x"], block["baseline"], block["text"])
     canvas.setFont("Helvetica", 9)
-    canvas.drawString(MARGIN, MARGIN, "Private review only. Quality gates incomplete. Page 1 of 1.")
+    canvas.drawString(MARGIN, MARGIN, FOOTER)
     canvas.showPage()
     canvas.save()
     pdf = output.getvalue()

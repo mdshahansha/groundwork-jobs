@@ -24,7 +24,7 @@ COMMANDS = {
     "paraphrase-revoke": ({"paraphrase_id"}, set()),
     "job-add": ({"company", "title", "description", "requirements"},
                 {"requisition", "preferred_requirements", "required_authorisations",
-                 "mandatory_credentials", "remote_regions"}),
+                 "mandatory_credentials", "remote_regions", "required_formats"}),
     "policy-set": ({"policy"}, set()),
     "mapping-propose": ({"job_id", "group", "index", "claim_id", "consent"}, set()),
     "mapping-review-packet": ({"mapping_review_id"}, set()),
@@ -44,6 +44,7 @@ COMMANDS = {
     "task-resume": ({"task_id"}, set()),
     "draft-export": ({"task_id"}, set()),
     "draft-render": ({"task_id", "output_path"}, set()),
+    "draft-verify": ({"task_id"}, set()),
     "profile-map": ({"job_id", "markdown"}, set()),
     "handoff-preview": ({"cv_task_id", "letter_task_id", "output_path"}, set()),
     "delete-preview": ({"source_id"}, set()),
@@ -133,6 +134,8 @@ def dispatch(ws, command, data):
         return tasks.resume(**data)
     if command == "draft-export":
         return tasks.private_export(**data)
+    if command == "draft-verify":
+        return tasks.verify_draft(**data)
     if command == "draft-render":
         return tasks.render_private(**data)
     if command == "profile-map":
