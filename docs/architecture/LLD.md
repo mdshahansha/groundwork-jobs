@@ -8,6 +8,7 @@
 | `tasks.py` | Packet/output validation, attempt/deadline caps, isolated review, private export | No model execution or ready export |
 | `csv_archive.py` | Byte identity, positional normalization, safe spreadsheet export | No historical application mapping/storage yet |
 | `ranking.py` | Versioned score/confidence, salary comparability, conservative experience and stable ordering | Candidate assessments; no semantic inference |
+| `policy.py` | Closed ranking-policy validation, normalised hash, FR-RNK-01 hard constraints | No hidden defaults; unknowns never exclude |
 | `cli.py` | Command schemas, bounded file reads, stable errors | No arbitrary command execution |
 
 Imported source identity is SHA-256 of exact input bytes. Confirmation identity

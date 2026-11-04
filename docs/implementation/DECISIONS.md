@@ -67,3 +67,15 @@ requiring both field rules and matching expiring consent. Reusable answers and
 candidate confirmation never substitute for consent. Source images are denied
 until a qualified image privacy path exists. See
 ../architecture/DISCLOSURE_POLICY.md for schemas, commands and migration.
+
+## D-09: Ranking policy is explicit and pinned; R1 never recommends prepare
+
+`rank` requires an active `ranking-policy@1`; no default is assumed, matching
+"presets are documented examples, not hidden defaults". The policy hash is
+stored with each ranking and a change marks earlier rankings outdated. Candidate
+eligibility statements (country, authorisations not held, credentials absent)
+live in the policy because the profile has no structured eligibility fields yet.
+Because credibility is always `unassessed` in R1, a job at or above threshold is
+`review`, never `prepare`. `weights@0` is refused instead of approximated.
+A host-model `direct` mapping verdict may admit `supported` without a phrase
+match; `related` never does.

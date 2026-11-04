@@ -10,9 +10,9 @@ MAX_PACKET_BYTES = 64_000
 SENSITIVITY = {"public", "private", "restricted"}
 PROVENANCE = {"document", "candidate_confirmation"}
 TASK_KINDS = {"draft_cv", "draft_letter", "review"}
-VERSIONS = {"schema": "4", "prompt": "1", "policy": "2", "semantic": "guard-2+review-1", "template": "text-1",
+VERSIONS = {"schema": "5", "prompt": "1", "policy": "2", "semantic": "guard-2+review-1", "template": "text-1",
             "assets": "none", "lens": "neutral-1", "research": "unavailable",
-            "calculation": "1", "model": "host-unspecified"}
+            "calculation": "2", "model": "host-unspecified"}
 
 
 class WorkspaceError(Exception):
