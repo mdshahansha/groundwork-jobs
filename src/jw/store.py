@@ -84,7 +84,14 @@ RANKING_SCHEMA = (
     "result TEXT NOT NULL, created_at TEXT NOT NULL, "
     "state TEXT NOT NULL CHECK(state IN ('current','outdated')))",
 )
-SCHEMA_VERSION = 5
+# JW-08: source-scoped claim extraction proposals. Not job tasks: a source has no job.
+EXTRACTION_SCHEMA = (
+    "CREATE TABLE extractions (id TEXT PRIMARY KEY, fingerprint TEXT NOT NULL UNIQUE, "
+    "source_id TEXT NOT NULL REFERENCES sources(id), packet TEXT, output TEXT, state TEXT NOT NULL, "
+    "attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL, deadline TEXT NOT NULL, "
+    "created_at TEXT NOT NULL, completed_at TEXT, usage TEXT)",
+)
+SCHEMA_VERSION = 6
 
 
 class Store:
@@ -146,6 +153,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=5")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 5:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 5:
+                    for statement in EXTRACTION_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=6")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -165,7 +180,7 @@ class Store:
 
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
-        require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings"}, "invalid_schema", "Unknown entity.")
+        require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")

@@ -1,4 +1,11 @@
-# CLI contracts, storage schema version 5
+# CLI contracts, storage schema version 6
+
+JW-08 adds `task-create` kind `repair` (`draft_id` is the completed review),
+`extraction-create` (`source_id`, `consent`), `extraction-packet`,
+`extraction-submit` (`extraction_id`, `response`), `extraction-proposals` and
+`extraction-accept` (`extraction_id`, `indices`, `confirm`), all keyed by
+`extraction_id`, and `usage-report` (`job_id`). See
+[orchestration](AI_ORCHESTRATION.md).
 
 JW-07 adds `policy-set` (`policy`: a `ranking-policy@1` object), `policy-show`
 (no input), `mapping-propose` (`job_id`, `group`: required|preferred, `index`,
