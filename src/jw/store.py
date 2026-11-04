@@ -91,7 +91,12 @@ EXTRACTION_SCHEMA = (
     "attempts INTEGER NOT NULL DEFAULT 0, max_attempts INTEGER NOT NULL, deadline TEXT NOT NULL, "
     "created_at TEXT NOT NULL, completed_at TEXT, usage TEXT)",
 )
-SCHEMA_VERSION = 6
+# JW-09: mechanical gate runs on rendered bytes, keyed by draft task and PDF hash.
+VERIFICATION_SCHEMA = (
+    "CREATE TABLE verifications (id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id), "
+    "pdf_sha256 TEXT NOT NULL, status TEXT NOT NULL, result TEXT NOT NULL, created_at TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 7
 
 
 class Store:
@@ -159,6 +164,14 @@ class Store:
                     for statement in EXTRACTION_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=6")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 6:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 6:
+                    for statement in VERIFICATION_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=7")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")

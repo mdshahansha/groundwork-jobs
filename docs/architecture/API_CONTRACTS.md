@@ -1,4 +1,8 @@
-# CLI contracts, storage schema version 6
+# CLI contracts, storage schema version 7
+
+JW-09 adds `draft-verify` (`task_id`) and an optional `required_formats` list on
+`job-add`. `draft-render` results add `verification`. See
+[fixed renderer](FIXED_RENDERER.md).
 
 JW-08 adds `task-create` kind `repair` (`draft_id` is the completed review),
 `extraction-create` (`source_id`, `consent`), `extraction-packet`,

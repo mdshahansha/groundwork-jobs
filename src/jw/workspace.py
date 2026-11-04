@@ -257,12 +257,12 @@ class Workspace:
 
     JOB_LISTS = {"requirements": (100, 500), "preferred_requirements": (100, 500),
                  "required_authorisations": (20, 200), "mandatory_credentials": (20, 200),
-                 "remote_regions": (250, 2)}
+                 "remote_regions": (250, 2), "required_formats": (5, 10)}
 
     def add_job(self, data):
         fields(data, {"company", "title", "description", "requirements"},
                {"requisition", "preferred_requirements", "required_authorisations",
-                "mandatory_credentials", "remote_regions"})
+                "mandatory_credentials", "remote_regions", "required_formats"})
         for key in ("company", "title"):
             string(data[key], 200)
         string(data["description"], 20000)
@@ -277,6 +277,9 @@ class Workspace:
         for region in data.get("remote_regions", []):
             require(re.fullmatch(r"[A-Z]{2}", region) is not None, "invalid_schema",
                     "remote_regions uses ISO 3166-1 alpha-2 uppercase codes.")
+        for value in data.get("required_formats", []):
+            require(value in ("pdf", "docx", "txt", "html"), "invalid_schema",
+                    "required_formats uses pdf, docx, txt or html.")
         # Only fields the listing states are stored: an absent field stays unknown, never empty-as-known.
         normalized = dict(data, credibility="unassessed", availability="unverified",
                           recommendation="review")
@@ -451,6 +454,9 @@ class Workspace:
                                 "(SELECT id FROM claims WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE requirement_reviews SET review='revoked' WHERE claim_id IN "
                                 "(SELECT id FROM claims WHERE source_id=?)", (item,))
+                # Gate results can quote extracted dates: scrub them with the draft they checked.
+                self.db.execute("UPDATE verifications SET result='{}',status='erased' WHERE task_id IN "
+                                "(SELECT task_id FROM task_sources WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE tasks SET packet=NULL,output=NULL,state='erased' WHERE id IN "
                                 "(SELECT task_id FROM task_sources WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE extractions SET packet=NULL,output=NULL,state='erased' WHERE source_id=?", (item,))
@@ -568,7 +574,7 @@ class Workspace:
                 "outdated": [item for item in items if item["state"] == "outdated"]}
 
     def status(self):
-        return {"schema_version": 6, "profile_published": bool(self.db.execute(
+        return {"schema_version": 7, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],
