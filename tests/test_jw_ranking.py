@@ -15,6 +15,20 @@ def assessment(**changes):
     return value
 
 
+def policy(**changes):
+    value = {"schema": "ranking-policy@1", "weights": "weights@1", "relevance_threshold": 60,
+             "freshness": {"max_age_days": 30}, "companies": {"deny": []},
+             "skills": {"excluded_terms": []}, "location": {"countries": ["IN"], "remote": "allowed"},
+             "eligibility": {"country": "IN", "authorisations_not_held": [], "credentials_absent": []},
+             "history": {"exclude_applied_within_days": 0}}
+    for key, item in changes.items():
+        if isinstance(item, dict) and isinstance(value.get(key), dict):
+            value[key] = dict(value[key], **item)
+        else:
+            value[key] = item
+    return value
+
+
 def salary(low=100, high=200, **changes):
     value = dict(min=low, max=high, currency="USD", basis="base", period="year")
     value.update(changes)

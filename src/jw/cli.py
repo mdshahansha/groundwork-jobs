@@ -22,8 +22,15 @@ COMMANDS = {
     "paraphrase-review-packet": ({"paraphrase_id"}, set()),
     "paraphrase-review-submit": ({"paraphrase_id", "response"}, set()),
     "paraphrase-revoke": ({"paraphrase_id"}, set()),
-    "job-add": ({"company", "title", "description", "requirements"}, {"requisition"}),
-    "rank": ({"job_id", "mapping", "assessment"}, set()),
+    "job-add": ({"company", "title", "description", "requirements"},
+                {"requisition", "preferred_requirements", "required_authorisations",
+                 "mandatory_credentials", "remote_regions"}),
+    "policy-set": ({"policy"}, set()),
+    "mapping-propose": ({"job_id", "group", "index", "claim_id", "consent"}, set()),
+    "mapping-review-packet": ({"mapping_review_id"}, set()),
+    "mapping-review-submit": ({"mapping_review_id", "response"}, set()),
+    "rank": ({"job_id", "mapping", "assessment"}, {"preferred_mapping"}),
+    "rankings": (set(), {"include_outdated"}),
     "task-create": ({"job_id", "kind", "consent"}, {"draft_id"}),
     "task-packet": ({"task_id"}, set()),
     "task-submit": ({"task_id", "response"}, set()),
@@ -80,8 +87,22 @@ def dispatch(ws, command, data):
         return ws.revoke_paraphrase(data["paraphrase_id"])
     if command == "job-add":
         return ws.add_job(data)
+    if command == "policy-set":
+        return ws.set_policy(data["policy"])
+    if command == "policy-show":
+        policy, policy_hash = ws.active_policy()
+        return {"policy_hash": policy_hash, "policy": policy}
+    if command == "mapping-propose":
+        return ws.propose_mapping(**data)
+    if command == "mapping-review-packet":
+        return ws.mapping_packet(data["mapping_review_id"])
+    if command == "mapping-review-submit":
+        return ws.submit_mapping_review(data["mapping_review_id"], canonical(data["response"]).encode())
     if command == "rank":
         return ws.rank(**data)
+    if command == "rankings":
+        require(data.get("include_outdated", False) in (True, False), "invalid_schema", "Expected a boolean.")
+        return ws.rankings(data.get("include_outdated", False))
     if command == "task-create":
         return tasks.create(**data)
     if command == "task-packet":
@@ -116,7 +137,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Local job workspace (development checkpoint; no external actions)")
     parser.add_argument("--workspace", required=True, help="Private directory outside the application source checkout")
     parser.add_argument("command", choices=sorted(set(COMMANDS) | UNSUPPORTED |
-                                                {"init", "status", "source-import", "profile-publish"}))
+                                                {"init", "status", "source-import", "profile-publish", "policy-show"}))
     parser.add_argument("--input", help="UTF-8 JSON request file; raw UTF-8 text for source-import")
     parser.add_argument("--sensitivity", choices=["public", "private", "restricted"], default="private")
     parser.add_argument("--provenance", choices=["document", "candidate_confirmation"], default="document")

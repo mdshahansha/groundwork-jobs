@@ -7,9 +7,9 @@ from functools import wraps
 import re
 
 from .contracts import fields, require
+from .policy import WEIGHT_SETS
 
-WEIGHTS = {"required": 35, "title": 15, "preferred": 10, "domain": 10,
-           "location": 10, "salary": 10, "freshness": 5, "contact": 5}
+WEIGHTS = WEIGHT_SETS["weights@1"]
 STATES = {"supported": Decimal(1), "partial": Decimal("0.5"),
           "unsupported": Decimal(0), "unknown": Decimal("0.25")}
 HALF = Decimal("0.5")
@@ -133,8 +133,16 @@ def experience_band(years, minimum=None, maximum=None):
     return "within"
 
 
+GAP_LABELS = {"required": "required skills not fully evidenced", "title": "title or seniority unknown or mismatched",
+              "preferred": "preferred skills not fully evidenced", "domain": "domain evidence incomplete",
+              "location": "location fit unclear or imperfect", "salary": "salary unknown or not overlapping",
+              "freshness": "posting date unknown or aging", "contact": "contact route unknown or indirect"}
+
+
 @fixed_precision
-def score(required, preferred, assessment, as_of):
+def score(required, preferred, assessment, as_of, policy=None, exclusions=()):
+    """Weighted relevance. `policy` (validated) sets the weight set, freshness window and
+    threshold; `exclusions` are FR-RNK-01 details already computed against stored state."""
     fields(assessment, {"title_alias_match", "seniority_distance", "domain", "location",
                         "location_eligible", "candidate_salary", "job_salary", "posted_on", "contact"},
            {"freshness_window_days"})
@@ -152,7 +160,10 @@ def score(required, preferred, assessment, as_of):
     title = (Decimal(0), Decimal(1)) if alias is False else (
         (HALF, Decimal(0)) if alias is None or distance is None else
         (Decimal(1) if distance == 0 else HALF if distance == 1 else Decimal(0), Decimal(1)))
-    window = assessment.get("freshness_window_days", 30)
+    if policy is not None:
+        require("freshness_window_days" not in assessment, "invalid_schema",
+                "Set the freshness window in the ranking policy, not the assessment.")
+    window = policy["freshness"]["max_age_days"] if policy else assessment.get("freshness_window_days", 30)
     require(type(window) is int and 1 <= window <= 3650, "invalid_schema", "Freshness window must be 1..3650 days.")
     posted = assessment["posted_on"]
     age = None if posted is None else (today - day(posted)).days
@@ -168,14 +179,34 @@ def score(required, preferred, assessment, as_of):
     }
     def rounded(value):
         return float(value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-    total = sum(value * WEIGHTS[key] for key, (value, _) in components.items())
-    confidence = sum(known * WEIGHTS[key] for key, (_, known) in components.items())
-    exclusions = ["LOCATION_MISMATCH"] if eligible is False else []
-    return {"version": "calculations@1", "weights": "weights@1", "score": rounded(total),
-            "confidence": rounded(confidence), "calculation_date": as_of,
-            "components": {key: {"value": rounded(value), "weight": WEIGHTS[key], "known": rounded(known)}
+    weights = WEIGHTS if policy is None else WEIGHT_SETS[policy["weights"]]
+    total = sum(value * weights[key] for key, (value, _) in components.items())
+    confidence = sum(known * weights[key] for key, (_, known) in components.items())
+    details = list(exclusions)
+    if eligible is False:
+        details.insert(0, {"code": "LOCATION_MISMATCH", "rule": "assessment.location_eligible", "value": "false"})
+    codes = [item["code"] for item in details]
+    # R1 has no credibility engine and no listing-availability check: both are risk flags,
+    # so a job at or above the threshold is `review`, never `prepare` (FR-RNK-04, release plan).
+    reasons = ["credibility_unassessed", "availability_unverified"]
+    if confidence < 50:
+        reasons.append("many_unknowns")
+    if codes:
+        recommendation = "skip"
+    elif policy is not None and total < policy["relevance_threshold"]:
+        recommendation, reasons = "skip", ["below_threshold"]
+    else:
+        recommendation = "review"
+    gaps = sorted((key for key, (value, known) in components.items() if value < 1 or known < 1),
+                  key=lambda key: (-weights[key], key))
+    return {"version": "calculations@2", "weights": "weights@1" if policy is None else policy["weights"],
+            "score": rounded(total), "confidence": rounded(confidence), "calculation_date": as_of,
+            "components": {key: {"value": rounded(value), "weight": weights[key], "known": rounded(known)}
                            for key, (value, known) in components.items()},
-            "exclusions": exclusions, "recommendation": "skip" if exclusions else "review",
+            "exclusions": codes, "exclusion_details": details,
+            "gaps": [{"component": key, "label": GAP_LABELS[key]} for key in gaps],
+            "recommendation": recommendation, "recommendation_reasons": [] if codes else reasons,
+            "relevance_threshold": None if policy is None else policy["relevance_threshold"],
             "credibility": "unassessed", "availability": "unverified",
             "label": "Relevance to your profile (0-100). Not an employer ATS score or hiring probability."}
 

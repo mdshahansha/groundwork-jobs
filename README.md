@@ -26,6 +26,13 @@ ATS/referral manual previews. Restricted fields stay out of CVs and model
 packets; source images are denied. Existing workspaces upgrade additively to
 schema 2. See [disclosure policy](docs/architecture/DISCLOSURE_POLICY.md).
 
+JW-07 ranking pins a validated, hashed ranking policy; changing it marks earlier
+rankings outdated. Hard constraints (denied company, excluded term, remote region,
+authorisation, credential, recent application) exclude only on explicit facts.
+Preferred requirements are scored separately, and `supported` needs a whole-phrase
+match or a `direct` host-model mapping review. Workspaces upgrade additively to
+schema 5. See [scoring](docs/architecture/SCORING.md).
+
 JW-05 semantic checks let a draft use a reworded claim only after three gates:
 a deterministic guard (changed quantities, added names, flipped negations,
 stronger scope, new credentials, any new content word), candidate approval, and

@@ -15,7 +15,7 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-04 | Partially implemented | src/jw/workspace.py, store.py | W.test_deletion_erases_all_dependent_packet_text; test_delete_follows_correction_lineage; test_failed_delete_rolls_back_whole_transaction | Atomic logical erasure includes descendants | Independent deletion journal, backups, restore purge |
 | JW-05 | Implemented and verified for supported runtime paths | src/jw/semantics.py, workspace.py, tasks.py, store.py, cli.py; docs/architecture/SEMANTIC_CHECKS.md | tests/test_jw_semantics.py (25 tests); tests/fixtures/jw_paraphrase_corpus.json; W.test_factual_invention_unknown_reference_and_retry_cap | Exact text or a paraphrase passing guard-2, candidate approval and a host-model entailed verdict; 168-row labelled corpus: 120/120 fact changes caught, 0/48 false rejects | Host-model review quality is not measured against real model output; guard is lexical |
 | JW-06 | Partially implemented | src/jw/tasks.py, workspace.py | W.test_contact_edit_invalidates_pending_and_completed_outputs; test_version_and_calculation_date_invalidate; test_concurrent_identical_requests_have_one_logical_task | Immutable fingerprints; eight concurrent requests converge | Real templates/research/model pins, ranking refresh |
-| JW-07 | Partially implemented | src/jw/ranking.py, workspace.py, cli.py; docs/architecture/SCORING.md | tests/test_jw_ranking.py; W.test_rank_checks_current_claims_and_hard_location; test_transferable_mapping_cannot_claim_direct_support | Exact weighted vectors, unknowns, CTC/base and hourly handling, overlap union, conservative months, CLI mapping and stable ties pass | Product approval of provisional formulas, semantic mapping, full hard-policy integration and preferred-requirement storage |
+| JW-07 | Implemented and verified for supported runtime paths | src/jw/policy.py, ranking.py, workspace.py, store.py, cli.py; docs/architecture/SCORING.md | tests/test_jw_policy.py (23 tests); tests/test_jw_ranking.py; W.test_rank_checks_current_claims_and_hard_location | Hashed ranking-policy@1 with path errors and suggestions; outdated marking on change; seven reachable FR-RNK-01 codes with rule and value; preferred requirements; host-model direct/related mapping review; threshold recommendation and gaps | Product approval of provisional formulas; weights@0, calibration and stretch roles; CREDIBILITY_BLOCKED unreachable until a credibility engine; mapping review quality not measured on real model output |
 | JW-08 | Partially implemented | src/jw/contracts.py, tasks.py | W.test_model_output_does_not_gain_tool_authority; test_quota_resume_keeps_prior_draft_and_budget | Closed draft/review schemas, bounded bytes/attempts, unknown cost | Extraction/mapping/repair schemas, actual runner metering |
 | JW-09 | Partially implemented | src/jw/rendering.py, tasks.py, cli.py; docs/architecture/FIXED_RENDERER.md | Renderer overflow/glyph/injection/format probes; workspace privacy and staleness | Fixed-template private PDF path works without Docker or LaTeX execution | Full layout/visual/reviewer gates, required-format workflow, multilingual support |
 | JW-10 | Partially implemented | src/jw/tasks.py | W.test_isolated_review_cannot_assert_readiness | Fresh packet excludes rationale/history | Visual checks, repairs, held-out corpus and recall |
@@ -36,6 +36,10 @@ C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
 | JW-25 | Partially implemented | tests/test_jw_workspace.py; docs/testing/TEST_STRATEGY.md | W.test_local_flow_is_draft_only_no_provider_confirmation | Synthetic import/correct/draft/private-export/manual-record flow | Ranking, renderer, all quality gates, complete M1 |
 
 ## Actual verification
+
+2026-11-04 JW-07 completion: 285 full-suite tests passed, including 23 new
+policy, hard-constraint, preferred-requirement, mapping-review, CLI and v4-to-v5
+migration tests. Mapping verdicts in tests are synthetic; no real model was called.
 
 2026-10-30 JW-05 completion: 262 full-suite tests passed with the pinned render
 extra. guard-2 counts short added words; a host-model entailment verdict is now a
@@ -72,8 +76,9 @@ Full regression: 213 tests passed; repository selftest and release-plan checks p
 Ranking follow-up: 205 full-suite tests passed, including 49 job-workspace tests.
 The independently installed 0.1.1 wheel passed all 49 job-workspace tests.
 The local flow now includes candidate-assessed ranking and a real CLI rank request.
-JW-07 remains partial: arithmetic and a safe manual-assessment path are implemented,
-but semantic mapping and full policy integration are not. No new ticket is marked
+At that checkpoint JW-07 was partial: arithmetic and a safe manual-assessment path
+were implemented, but semantic mapping and full policy integration were not
+(closed by the 2026-11-04 entry above). No new ticket is marked
 fully complete by this checkpoint. The records below describe the previous baseline.
 
 - 2026-10-28, Windows/Python 3.12: 34 new tests passed (25 workspace + 9 CSV).
@@ -96,7 +101,6 @@ No ready PDF or real submission receipt is claimed. See
 
 ## Resume order
 
-Finish semantic
-mapping and ranking policy integration; qualify rendering; implement six quality gates and bounded repairs;
+Qualify rendering; implement six quality gates and bounded repairs;
 complete lifecycle/backup recovery and remaining M1 scenarios. Enable provider
 actions only after JW-11 through JW-16 safeguards pass.

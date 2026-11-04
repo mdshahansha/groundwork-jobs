@@ -70,7 +70,21 @@ REVIEW_SCHEMA = (
     "ALTER TABLE paraphrases ADD COLUMN review TEXT NOT NULL DEFAULT 'needs_model'",
     "ALTER TABLE paraphrases ADD COLUMN review_attempts INTEGER NOT NULL DEFAULT 0",
 )
-SCHEMA_VERSION = 4
+# JW-07: immutable ranking policies, host-model requirement reviews and pinned rankings.
+RANKING_SCHEMA = (
+    "CREATE TABLE policies (hash TEXT PRIMARY KEY, content TEXT NOT NULL, created_at TEXT NOT NULL)",
+    "CREATE TABLE active_policy (singleton INTEGER PRIMARY KEY CHECK(singleton=1), "
+    "hash TEXT NOT NULL REFERENCES policies(hash), activated_at TEXT NOT NULL)",
+    "CREATE TABLE requirement_reviews (id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id), "
+    "grp TEXT NOT NULL CHECK(grp IN ('required','preferred')), idx INTEGER NOT NULL, "
+    "claim_id TEXT NOT NULL REFERENCES claims(id), review TEXT NOT NULL, "
+    "review_attempts INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, UNIQUE(job_id,grp,idx,claim_id))",
+    "CREATE TABLE rankings (id TEXT PRIMARY KEY, job_id TEXT NOT NULL REFERENCES jobs(id), "
+    "policy_hash TEXT NOT NULL REFERENCES policies(hash), ranking_fingerprint TEXT NOT NULL, "
+    "result TEXT NOT NULL, created_at TEXT NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('current','outdated')))",
+)
+SCHEMA_VERSION = 5
 
 
 class Store:
@@ -124,6 +138,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=4")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 4:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 4:
+                    for statement in RANKING_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=5")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -143,7 +165,7 @@ class Store:
 
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
-        require(table in {"sources", "claims", "jobs", "tasks"}, "invalid_schema", "Unknown entity.")
+        require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")

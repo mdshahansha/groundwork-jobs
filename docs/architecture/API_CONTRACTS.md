@@ -1,4 +1,15 @@
-# CLI contracts, storage schema version 4
+# CLI contracts, storage schema version 5
+
+JW-07 adds `policy-set` (`policy`: a `ranking-policy@1` object), `policy-show`
+(no input), `mapping-propose` (`job_id`, `group`: required|preferred, `index`,
+`claim_id`, `consent`), `mapping-review-packet` (`mapping_review_id`),
+`mapping-review-submit` (`mapping_review_id`, `response` with
+`output: {verdict, codes}` and `usage`) and `rankings` (optional
+`include_outdated`). `rank` accepts optional `preferred_mapping` and requires an
+active policy. `job-add` accepts optional `preferred_requirements`,
+`required_authorisations`, `mandatory_credentials` and `remote_regions`. Rank
+results add `policy_hash`, `ranking_id`, `exclusion_details`, `gaps` and
+`recommendation_reasons`. See [scoring](SCORING.md).
 
 JW-05 adds `paraphrase-check` (`claim_id`, `text`), `paraphrase-approve`
 (`claim_id`, `text`, `confirm`, `consent`, optional `acknowledge: ["new_content"]`),
