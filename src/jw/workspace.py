@@ -453,6 +453,7 @@ class Workspace:
                                 "(SELECT id FROM claims WHERE source_id=?)", (item,))
                 self.db.execute("UPDATE tasks SET packet=NULL,output=NULL,state='erased' WHERE id IN "
                                 "(SELECT task_id FROM task_sources WHERE source_id=?)", (item,))
+                self.db.execute("UPDATE extractions SET packet=NULL,output=NULL,state='erased' WHERE source_id=?", (item,))
                 self.db.execute("INSERT OR IGNORE INTO deletions VALUES (?,?)", (item, utcnow()))
             self.db.execute("UPDATE profile SET published=0")
             # Rankings cite claim IDs only, but their evidence is gone: none stays current.
@@ -567,7 +568,7 @@ class Workspace:
                 "outdated": [item for item in items if item["state"] == "outdated"]}
 
     def status(self):
-        return {"schema_version": 5, "profile_published": bool(self.db.execute(
+        return {"schema_version": 6, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],

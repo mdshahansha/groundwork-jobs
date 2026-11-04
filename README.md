@@ -26,6 +26,11 @@ ATS/referral manual previews. Restricted fields stay out of CVs and model
 packets; source images are denied. Existing workspaces upgrade additively to
 schema 2. See [disclosure policy](docs/architecture/DISCLOSURE_POLICY.md).
 
+JW-08 adds a bounded repair task (fixes only what a review flagged, stops after
+three rounds as blocked_quality), host-model claim extraction from public sources
+(spans must match the source and need candidate acceptance) and a usage report
+that keeps unknown tokens and cost unknown. Workspaces upgrade to schema 6.
+
 JW-07 ranking pins a validated, hashed ranking policy; changing it marks earlier
 rankings outdated. Hard constraints (denied company, excluded term, remote region,
 authorisation, credential, recent application) exclude only on explicit facts.

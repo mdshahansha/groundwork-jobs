@@ -301,19 +301,19 @@ class CommandsAndMigration(Base):
         self.assertEqual(1, len(out["result"]["shortlist"]))
         self.ws = Workspace(self.root)
 
-    def test_v4_workspace_upgrades_to_v5(self):
+    def test_v4_workspace_upgrades_to_current(self):
         self.ws.close()
         db = sqlite3.connect(self.root / "workspace.sqlite3")
-        for table in ("rankings", "requirement_reviews", "active_policy", "policies"):
+        for table in ("extractions", "rankings", "requirement_reviews", "active_policy", "policies"):
             db.execute(f"DROP TABLE {table}")
         db.execute("PRAGMA user_version=4")
         db.commit()
         db.close()
         Store(self.root).close()
         self.ws = Workspace(self.root)
-        self.assertEqual(5, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
+        self.assertEqual(6, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
         self.assertCode("policy_missing", self.ws.active_policy)
-        self.assertEqual(5, self.ws.status()["schema_version"])
+        self.assertEqual(6, self.ws.status()["schema_version"])
 
 
 if __name__ == "__main__":

@@ -9,8 +9,8 @@ MAX_BYTES = 1_000_000
 MAX_PACKET_BYTES = 64_000
 SENSITIVITY = {"public", "private", "restricted"}
 PROVENANCE = {"document", "candidate_confirmation"}
-TASK_KINDS = {"draft_cv", "draft_letter", "review"}
-VERSIONS = {"schema": "5", "prompt": "1", "policy": "2", "semantic": "guard-2+review-1", "template": "text-1",
+TASK_KINDS = {"draft_cv", "draft_letter", "review", "repair"}
+VERSIONS = {"schema": "6", "prompt": "1", "policy": "2", "semantic": "guard-2+review-1", "template": "text-1",
             "assets": "none", "lens": "neutral-1", "research": "unavailable",
             "calculation": "2", "model": "host-unspecified"}
 

@@ -16,6 +16,10 @@ and restore are not supported; do not overwrite a live database from a backup.
 | profile | singleton key | corrected name/email, published flag |
 | jobs | opaque ID, unique immutable input fingerprint | normalized JSON with honest unknowns |
 | tasks | opaque ID, unique fingerprint, job FK | packet, validated output, dependency hash, state, budgets, usage, times |
+| policies, active_policy | policy hash | normalised ranking policy; one active (schema 5, JW-07) |
+| requirement_reviews | opaque ID; unique job, group, index, claim | host-model mapping verdict and attempts (schema 5) |
+| rankings | opaque ID, job FK, policy hash | pinned result, fingerprint, current/outdated (schema 5) |
+| extractions | opaque ID, unique fingerprint, source FK | packet, span proposals, state, budgets, usage (schema 6, JW-08) |
 | task_sources | task/source FK pair | erasure dependency graph |
 | outcomes | opaque ID, unique job/kind/effective time | append-only manual events |
 | audit | monotonic sequence | event code, opaque entity ID, timestamp; no source text |

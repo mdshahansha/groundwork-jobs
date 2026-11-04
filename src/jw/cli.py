@@ -32,6 +32,12 @@ COMMANDS = {
     "rank": ({"job_id", "mapping", "assessment"}, {"preferred_mapping"}),
     "rankings": (set(), {"include_outdated"}),
     "task-create": ({"job_id", "kind", "consent"}, {"draft_id"}),
+    "usage-report": ({"job_id"}, set()),
+    "extraction-create": ({"source_id", "consent"}, set()),
+    "extraction-packet": ({"extraction_id"}, set()),
+    "extraction-submit": ({"extraction_id", "response"}, set()),
+    "extraction-proposals": ({"extraction_id"}, set()),
+    "extraction-accept": ({"extraction_id", "indices", "confirm"}, set()),
     "task-packet": ({"task_id"}, set()),
     "task-submit": ({"task_id", "response"}, set()),
     "task-failure": ({"task_id", "reason"}, set()),
@@ -105,6 +111,18 @@ def dispatch(ws, command, data):
         return ws.rankings(data.get("include_outdated", False))
     if command == "task-create":
         return tasks.create(**data)
+    if command == "usage-report":
+        return tasks.usage_report(**data)
+    if command == "extraction-create":
+        return tasks.extraction_create(**data)
+    if command == "extraction-packet":
+        return tasks.extraction_packet(**data)
+    if command == "extraction-submit":
+        return tasks.extraction_submit(data["extraction_id"], canonical(data["response"]).encode())
+    if command == "extraction-proposals":
+        return tasks.extraction_proposals(**data)
+    if command == "extraction-accept":
+        return tasks.extraction_accept(**data)
     if command == "task-packet":
         return tasks.packet(**data)
     if command == "task-submit":
