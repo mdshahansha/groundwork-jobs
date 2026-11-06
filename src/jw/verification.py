@@ -99,7 +99,8 @@ def gate_render(pdf):
     collision = bool(footers) and any(f["y1"] > min((b["y0"] for b in body), default=height) for f in footers)
     _check(results, "footer_collision", len(footers) == 1 and not collision, "footer_missing_or_colliding")
     headings = [i for i, b in enumerate(blocks) if b["size"] == HEADING_SIZE]
-    orphan = any(not any(b["size"] not in (HEADING_SIZE, FOOTER_SIZE) for b in blocks[i + 1:]) for i in headings)
+    # The block right after a heading must be body: a heading followed by another heading or the footer is orphaned.
+    orphan = any(i + 1 >= len(blocks) or blocks[i + 1]["size"] in (HEADING_SIZE, FOOTER_SIZE) for i in headings)
     _check(results, "orphaned_heading", bool(headings) and not orphan, "heading_without_body")
     # A one-page template has only a final page: whitespace and page-break checks apply to non-final pages.
     results["excessive_whitespace"] = {"status": "not_applicable", "detail": "single_final_page"}
@@ -111,11 +112,13 @@ def gate_text(extracted, expected):
     """Gate 2 on extracted text against the profile, claims and job snapshot it was built from."""
     results = {}
     lines = [line.strip() for line in extracted.splitlines()]
-    profile = expected["profile"]
-    _check(results, "contact_details", profile["name"] in lines and profile["email"] in lines, "contact_mismatch")
+    profile, flat = expected["profile"], _squash(extracted)
+    # Squashed, so a long name or email the renderer wrapped across lines still matches.
+    _check(results, "contact_details", _squash(profile["name"]) in flat and _squash(profile["email"]) in flat,
+           "contact_mismatch")
     _check(results, "headings", expected["heading"] in lines, "required_heading_missing")
     results["links"] = {"status": "not_applicable", "detail": "profile_has_no_links"}
-    flat, cursor, order_ok = _squash(extracted), 0, True
+    cursor, order_ok = 0, True
     for item in expected["sequence"]:
         found = flat.find(_squash(item), cursor)
         if found < 0:
@@ -149,6 +152,8 @@ def gate_text(extracted, expected):
 def required_format(job):
     """The job's required formats: pdf is supported; anything else blocks input honestly."""
     formats = job.get("required_formats", ["pdf"])
+    if not isinstance(formats, list) or not formats or not all(isinstance(f, str) for f in formats):
+        return {"status": "blocked_input", "detail": {"invalid_required_formats": True}}
     unsupported = sorted(set(formats) - SUPPORTED_FORMATS)
     if unsupported:
         return {"status": "blocked_input", "detail": {"unsupported_formats": unsupported}}

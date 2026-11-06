@@ -93,6 +93,19 @@ class DefectDetection(unittest.TestCase):
         self.assertIn("font_consistency", self.failed(drawn(*GOOD, ("Odd size", 48, 600, "Helvetica", 12))))
         self.assertIn("footer_collision", self.failed(drawn(*GOOD[:-1], (FOOTER, 48, 655, "Helvetica", 9))))
         self.assertIn("orphaned_heading", self.failed(drawn(*GOOD[:4], GOOD[-1])))
+        # Two headings in a row: the first is orphaned even though body text follows later.
+        self.assertIn("orphaned_heading", self.failed(drawn(*GOOD[:4], ("Experience", 48, 672, "Helvetica", 13),
+                                                           *GOOD[4:])))
+
+    def test_wrapped_contact_and_malformed_formats(self):
+        from jw.verification import required_format
+
+        expected = expected_content(PROFILE, ASSERTIONS[:1], "draft_cv")
+        wrapped = gate_text(gate_render(drawn(*GOOD))[2].replace("Synthetic Candidate", "Synthetic\nCandidate"), expected)
+        self.assertEqual("passed", wrapped["contact_details"]["status"])
+        for formats in ("pdf", [], [None]):
+            self.assertEqual("blocked_input", required_format({"required_formats": formats})["status"])
+        self.assertEqual("passed", required_format({})["status"])
 
     def test_unreadable_and_multi_page_fail_compiles(self):
         self.assertIn("compiles", self.failed(b"%PDF-1.4 truncated"))
