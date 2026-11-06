@@ -14,6 +14,20 @@ MAX_RUN_TASKS = 12
 MAX_REPAIR_ITERATIONS = 3
 BLOCKING = ("critical", "major")
 DRAFT_KINDS = {"draft_cv", "draft_letter", "repair"}
+# FR-DOC-06 severity table: a code's lowest allowed severity. A critical code reported as
+# minor would let a fabricated qualification end the repair loop, so the floor is enforced.
+REVIEW_CODES = {
+    "fabricated_qualification": "critical", "wrong_contact": "critical", "unsupported_date": "critical",
+    "wrong_target": "critical", "unreadable_artifact": "critical", "claim_class_misuse": "critical",
+    "restricted_data": "critical", "unsupported_assertion": "major", "weak_evidence": "major",
+    "unmentioned_requirement": "major", "opening_tone": "major", "length_policy": "major",
+    "style": "minor", "redundancy": "minor", "word_choice": "minor"}
+SEVERITY_RANK = {"minor": 0, "major": 1, "critical": 2}
+REVIEW_ELEMENTS = ("contact", "heading", "target", "assertion", "footer", "document")
+DOCUMENT_POLICY = {"severity_floor": REVIEW_CODES, "blocking_severities": list(BLOCKING),
+                   "pages": 1, "assertions": [1, 100]}
+STYLE_GUIDE = ("Plain, factual first person. No superlatives the evidence does not state. "
+               "The opening names the target role and employer.")
 
 
 def document_kind(task):
@@ -53,12 +67,17 @@ class Tasks:
                         "invalid_schema", "Review requires a draft for this job.")
                 self._current(draft)
                 require(draft["state"] == "completed", "task_incomplete", "Complete the draft first.")
-                # Fresh packet contains only draft text/evidence/policy, never model history or rationale.
-                packet["draft"] = json.loads(draft["output"])
+                # Fresh packet (FR-DOC-06): draft, rendered text, cited evidence, requirement matrix,
+                # policy and style guide. Never the drafter's packet, history or rationale.
+                packet.update(self._review_inputs(job_id, draft, dependencies))
+                del packet["evidence"]
                 packet["draft_id"] = draft_id
-                packet["output_schema"] = {"findings": [{"severity": "critical|major|minor",
-                                                          "code": "unsupported_assertion|wrong_contact|style",
-                                                          "assertion_index": "integer or null"}]}
+                packet["output_schema"] = {"findings": [{
+                    "severity": "critical|major|minor", "code": "|".join(REVIEW_CODES),
+                    "assertion_index": "integer or null",
+                    "location": {"page": "1", "line": "integer >= 1 or null", "element": "|".join(REVIEW_ELEMENTS)},
+                    "claim_ids": ["cited claim IDs"], "proposed_correction": "string or null",
+                    "blocking": "true for critical and major"}]}
             else:
                 packet["output_schema"] = {"assertions": [{"text": "exact claim text or one of its approved_paraphrases",
                                                             "claim_id": "visible claim ID"}]}
@@ -82,6 +101,34 @@ class Tasks:
                 self.db.execute("INSERT INTO task_sources VALUES (?,?)", (task_id, source_id))
             self.store.audit("task_created", task_id)
         return {"task_id": task_id, "state": "needs_model", "reused": False}
+
+    def _review_inputs(self, job_id, draft, dependencies):
+        output = json.loads(draft["output"])
+        cited = {a["claim_id"] for a in output["assertions"]}
+        job = dependencies["job"]
+        mappings = [dict(row) for row in self.db.execute(
+            "SELECT grp,idx,claim_id,review FROM requirement_reviews WHERE job_id=? AND review IN "
+            "('direct','related') ORDER BY grp,idx,claim_id", (job_id,))]
+        try:
+            from .rendering import expected_content, render_private_pdf
+            from .verification import gate_render, verify
+
+            packet = json.loads(draft["packet"])
+            kind = document_kind(draft)
+            pdf, _ = render_private_pdf(packet["profile"], output["assertions"], kind, packet["untrusted_job"])
+            mechanical = verify(pdf, expected_content(packet["profile"], output["assertions"], kind,
+                                                      packet["untrusted_job"]), packet["untrusted_job"])
+            rendered = {"text": gate_render(pdf)[2], "mechanical_status": mechanical["status"],
+                        "failed_checks": mechanical["failed_checks"],
+                        "page_images": "not_supplied: no rasteriser in the pinned render extra"}
+        except WorkspaceError as exc:
+            rendered = {"status": "not_rendered", "reason": exc.code}
+        return {"draft": output, "rendered": rendered,
+                "cited_evidence": [c for c in dependencies["evidence"] if c["claim_id"] in cited],
+                "requirement_matrix": {"required": job["requirements"],
+                                       "preferred": job.get("preferred_requirements", []),
+                                       "reviewed_mappings": mappings},
+                "document_policy": DOCUMENT_POLICY, "style_guide": STYLE_GUIDE}
 
     def _repair_packet(self, job_id, review_id):
         """FR-DOC-07: fix only the blocking findings of one completed review, at most three times."""
@@ -131,14 +178,32 @@ class Tasks:
             fields(output, {"findings"})
             require(isinstance(output["findings"], list) and len(output["findings"]) <= 100,
                     "invalid_schema", "Review findings must be a bounded list.")
+            cited = {c["claim_id"] for c in packet.get("cited_evidence") or packet.get("evidence", [])}
             for finding in output["findings"]:
-                fields(finding, {"severity", "code", "assertion_index"})
-                require(finding["severity"] in ("critical", "major", "minor") and
-                        finding["code"] in ("unsupported_assertion", "wrong_contact", "style"),
+                fields(finding, {"severity", "code", "assertion_index"},
+                       {"location", "claim_ids", "proposed_correction", "blocking"})
+                require(finding["severity"] in SEVERITY_RANK and finding["code"] in REVIEW_CODES,
                         "invalid_schema", "Unknown review severity or finding code.")
+                require(SEVERITY_RANK[finding["severity"]] >= SEVERITY_RANK[REVIEW_CODES[finding["code"]]],
+                        "severity_below_policy", "Finding severity is below the policy floor for its code.")
                 index = finding["assertion_index"]
                 require(index is None or (type(index) is int and 0 <= index < len(packet["draft"]["assertions"])),
                         "invalid_schema", "Review refers to an unknown assertion.")
+                if "blocking" in finding:
+                    require(finding["blocking"] is (finding["severity"] in BLOCKING), "invalid_schema",
+                            "blocking must be true exactly for critical and major findings.")
+                if "location" in finding:
+                    location = finding["location"]
+                    fields(location, {"page", "line", "element"})
+                    require(location["page"] == 1 and location["element"] in REVIEW_ELEMENTS and
+                            (location["line"] is None or (type(location["line"]) is int and location["line"] >= 1)),
+                            "invalid_schema", "Location needs page 1, a line >= 1 or null, and a known element.")
+                if "claim_ids" in finding:
+                    require(isinstance(finding["claim_ids"], list) and len(finding["claim_ids"]) <= 20 and
+                            all(isinstance(c, str) and c in cited for c in finding["claim_ids"]),
+                            "unknown_claim", "Finding cites a claim the reviewer was not given.")
+                if finding.get("proposed_correction") is not None:
+                    string(finding["proposed_correction"], 2000)
         else:
             fields(output, {"assertions"})
             if task["kind"] == "repair":
