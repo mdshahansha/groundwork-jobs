@@ -123,7 +123,17 @@ EXECUTION_SCHEMA = (
 )
 # JW-20: an envelope may name the job it acts for, so the reducer can place its attempts.
 RUN_SCHEMA = ("ALTER TABLE action_envelopes ADD COLUMN job_id TEXT REFERENCES jobs(id)",)
-SCHEMA_VERSION = 10
+# JW-22: imported tracker history, kept with its original bytes and row order.
+HISTORY_SCHEMA = (
+    "CREATE TABLE history_imports (id TEXT PRIMARY KEY, sha256 TEXT NOT NULL UNIQUE, encoding TEXT NOT NULL, "
+    "headings TEXT NOT NULL, mapping TEXT NOT NULL, raw BLOB NOT NULL, report TEXT NOT NULL, created_at TEXT NOT NULL)",
+    "CREATE TABLE history_rows (id TEXT PRIMARY KEY, import_id TEXT NOT NULL REFERENCES history_imports(id), "
+    "line INTEGER NOT NULL, cells TEXT NOT NULL, status TEXT NOT NULL CHECK(status IN ('imported','duplicate','invalid')), "
+    "company TEXT, title TEXT, applied_on TEXT, outcome TEXT, outcome_origin TEXT, extra TEXT NOT NULL, "
+    "identity TEXT, reason TEXT, UNIQUE(import_id, line))",
+    "CREATE INDEX history_identity ON history_rows(identity) WHERE status='imported'",
+)
+SCHEMA_VERSION = 11
 
 
 class Store:
@@ -225,6 +235,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=10")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 10:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 10:
+                    for statement in HISTORY_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=11")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -245,7 +263,7 @@ class Store:
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
         require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions",
-                           "action_envelopes", "authorisations", "attempts"}, "invalid_schema", "Unknown entity.")
+                           "action_envelopes", "authorisations", "attempts", "history_imports"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")

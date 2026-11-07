@@ -52,6 +52,9 @@ COMMANDS = {
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
     "backup": (set(), {"to"}),
     "model-pin": ({"model"}, set()),
+    "history-import": ({"path", "mapping"}, set()),
+    "history-show": ({"import_id"}, set()),
+    "history-export": ({"import_id", "output_path"}, set()),
     "pause": (set(), set()),
     "resume": ({"holder"}, {"seconds"}),
     "checkpoint": (set(), set()),
@@ -159,6 +162,18 @@ def dispatch(ws, command, data):
         return ws.delete_source(data["source_id"])
     if command == "outcome-record":
         return ws.record_outcome(**data)
+    if command.startswith("history-"):
+        from . import history
+        if command == "history-import":
+            string(data["path"], 4096)
+            return history.import_history(ws, read_bounded(data["path"]), data["mapping"])
+        if command == "history-show":
+            return history.history(ws, data["import_id"])
+        string(data["output_path"], 4096)
+        body = history.export_history(ws, data["import_id"])
+        with Path(data["output_path"]).open("xb") as stream:
+            stream.write(body)
+        return {"output_path": data["output_path"], "bytes": len(body)}
     if command in ("pause", "resume", "checkpoint"):
         from .actions import Actions
         from .execution import Executor
