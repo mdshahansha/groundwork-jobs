@@ -178,6 +178,7 @@ python3 scripts/check_frontmatter.py   # parses; a dir count does not prove a sk
 python3 scripts/check_no_secrets.py    # .gitignore does not stop a rename of a tracked file
 python3 scripts/check_config.py --offline   # credential wiring; --offline skips the live API calls
 python3 scripts/check_actor_inputs.py  # Apify ignores unknown input keys; this catches a renamed one
+python3 scripts/check_traceability.py   # PRD IDs cited in code exist; TRACEABILITY.md is current
 python3 -m unittest discover -s tests    # contracts: docs vs code, response shapes, client behaviour
 python3 scripts/selftest.py              # the whole picture: install, accounts, tests, what works now
 

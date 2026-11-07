@@ -201,6 +201,9 @@ def dispatch(ws, command, data):
     if command == "backup":
         from .backup import backup
         return backup(ws, data.get("to"))
+    if command == "schema":
+        from .traceability import command_schemas
+        return command_schemas()
     return ws.status()
 
 
@@ -208,7 +211,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Local job workspace (development checkpoint; no external actions)")
     parser.add_argument("--workspace", required=True, help="Private directory outside the application source checkout")
     parser.add_argument("command", choices=sorted(set(COMMANDS) | UNSUPPORTED |
-                                                {"init", "status", "source-import", "archive-import", "profile-publish", "policy-show"}))
+                                                {"init", "status", "schema", "source-import", "archive-import", "profile-publish", "policy-show"}))
     parser.add_argument("--input", help="UTF-8 JSON request file; raw UTF-8 text for source-import")
     parser.add_argument("--sensitivity", choices=["public", "private", "restricted"], default="private")
     parser.add_argument("--dry-run", action="store_true",
