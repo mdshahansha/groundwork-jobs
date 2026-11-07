@@ -35,6 +35,7 @@ COMMANDS = {
     "post-ingest": ({"post"}, set()),
     "lead-import": ({"source", "path"}, set()),
     "lead-fetch": ({"source"}, {"token_env", "days", "limit"}),
+    "lead-filter": (set(), {"policy", "applied_path", "export_path", "now", "limit"}),
     "merge-decide": ({"merge_id", "accept"}, set()),
     "merge-undo": ({"merge_id"}, set()),
     "opportunities": (set(), {"cursor", "limit"}),
@@ -216,6 +217,25 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command == "lead-filter":
+        from datetime import datetime
+        from . import lead_filter
+        applied = lead_filter.applied_from_tracker(data["applied_path"]) if data.get("applied_path") else ()
+        now = datetime.fromisoformat(data["now"]) if data.get("now") else None
+        result = lead_filter.screen(ws, data.get("policy"), applied, now)
+        if data.get("export_path"):
+            import csv
+            columns = ["fit", "title", "company", "location", "posted_at", "min_years", "contact_email", "url",
+                       "matched_skills", "poster_posts_seen_30d", "checks_pending", "provider", "post_id"]
+            with Path(data["export_path"]).open("x", newline="", encoding="utf-8") as stream:
+                writer = csv.DictWriter(stream, fieldnames=columns, extrasaction="ignore")
+                writer.writeheader()
+                for lead in result["leads"]:
+                    writer.writerow(dict(lead, matched_skills=" ".join(lead["matched_skills"]),
+                                         checks_pending=" ".join(lead["checks_pending"])))
+            result["exported"] = data["export_path"]
+        result["leads"] = result["leads"][:data.get("limit", 50)]
+        return result
     if command in ("lead-import", "lead-fetch"):
         from . import leads
         if command == "lead-import":
