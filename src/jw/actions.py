@@ -140,30 +140,32 @@ class Actions:
 
         A refusal that ends the authorisation (expiry, mismatch) is committed before the error
         is raised, so a retry cannot slip past it."""
-        failure = None
         with self.store.transaction():
-            auth = self.store.one("authorisations", auth_id)
-            if self.stopped():
-                failure = ("stopped", "The stop flag is set; no provider call is made.")
-            elif auth["state"] != "active":
-                failure = ("auth_" + auth["state"], "Authorisation is " + auth["state"] + "; no provider call is made.")
-            elif instant(utcnow()) >= instant(auth["expires_at"]):
-                failure = self._end(auth_id, "expired", "auth_expired", "Authorisation expired; no provider call is made.")
-            elif self.mode(auth["channel"]) == "draft_only":
-                failure = ("channel_draft_only", "This channel is draft only; no provider call is made.")
-            else:
-                channel = self._channel(channel)
-                hashes = attachment_hashes(list(attachments))
-                if (channel != auth["channel"] or destination != auth["destination"] or
-                        content_hash(channel, content) != auth["content_hash"] or
-                        hashes != json.loads(auth["attachment_hashes"]) or
-                        self.profile_version() != auth["profile_version"]):
-                    failure = self._end(auth_id, "invalid", "auth_hash_mismatch",
-                                        "What would be sent differs from what was approved; no provider call is made.")
-                else:
-                    self.db.execute("UPDATE authorisations SET state='used',ended_at=? WHERE id=?", (utcnow(), auth_id))
-                    self.store.audit("authorisation_used", auth_id)
+            failure = self.check_and_use(auth_id, channel, destination, content, attachments)
         if failure:
             require(False, *failure)
         return {"authorisation_id": auth_id, "state": "used", "provider_call": "not_performed",
                 "detail": "No provider exists; the executor would call it now."}
+
+    def check_and_use(self, auth_id, channel, destination, content, attachments=()):
+        """Run inside the caller's transaction. Returns (code, message) on refusal, else None."""
+        auth = self.store.one("authorisations", auth_id)
+        if self.stopped():
+            return ("stopped", "The stop flag is set; no provider call is made.")
+        if auth["state"] != "active":
+            return ("auth_" + auth["state"], "Authorisation is " + auth["state"] + "; no provider call is made.")
+        if instant(utcnow()) >= instant(auth["expires_at"]):
+            return self._end(auth_id, "expired", "auth_expired", "Authorisation expired; no provider call is made.")
+        if self.mode(auth["channel"]) == "draft_only":
+            return ("channel_draft_only", "This channel is draft only; no provider call is made.")
+        channel = self._channel(channel)
+        hashes = attachment_hashes(list(attachments))
+        if (channel != auth["channel"] or destination != auth["destination"] or
+                content_hash(channel, content) != auth["content_hash"] or
+                hashes != json.loads(auth["attachment_hashes"]) or
+                self.profile_version() != auth["profile_version"]):
+            return self._end(auth_id, "invalid", "auth_hash_mismatch",
+                             "What would be sent differs from what was approved; no provider call is made.")
+        self.db.execute("UPDATE authorisations SET state='used',ended_at=? WHERE id=?", (utcnow(), auth_id))
+        self.store.audit("authorisation_used", auth_id)
+        return None

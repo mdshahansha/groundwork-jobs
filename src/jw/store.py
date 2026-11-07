@@ -112,7 +112,16 @@ ACTION_SCHEMA = (
     "ended_at TEXT)",
     "CREATE TABLE controls (name TEXT PRIMARY KEY, value TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 8
+# JW-12: one fenced execution lease and the attempt recorded before every provider call.
+EXECUTION_SCHEMA = (
+    "CREATE TABLE leases (name TEXT PRIMARY KEY, holder TEXT NOT NULL, token INTEGER NOT NULL, "
+    "expires_at TEXT NOT NULL)",
+    "CREATE TABLE attempts (id TEXT PRIMARY KEY, authorisation_id TEXT NOT NULL UNIQUE REFERENCES authorisations(id), "
+    "channel TEXT NOT NULL, destination TEXT NOT NULL, lease_token INTEGER NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('in_flight','accepted','failed','unknown')), provider_ref TEXT, "
+    "evidence TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 9
 
 
 class Store:
@@ -198,6 +207,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=8")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 8:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 8:
+                    for statement in EXECUTION_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=9")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -218,7 +235,7 @@ class Store:
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
         require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions",
-                           "action_envelopes", "authorisations"}, "invalid_schema", "Unknown entity.")
+                           "action_envelopes", "authorisations", "attempts"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")
