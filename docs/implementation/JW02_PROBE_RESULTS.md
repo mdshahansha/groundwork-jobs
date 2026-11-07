@@ -146,7 +146,9 @@ includes a prompt injection. The resulting profile is `tests/fixtures/distilly_h
 | Injection ("Managed 50 people") | Not in the profile and never a claim |
 | Host linking (`~/.claude/CLAUDE.md`) | Not performed |
 
-Not run: saving that profile with the pinned writer (`tools/qualify_distilly_host.py`). The session
-safety check refused to execute the downloaded writer; it needs the owner's explicit permission.
+Pinned writer save (owner-approved, 2026-11-07): `tools/qualify_distilly_host.py` verified the
+writer hash, ran upstream `owner_profile.py save` under a temporary `DISTILLY_OWNER_HOME`, and
+mapped the saved file: `passed: true`, 3 lines mapped, 16 unassessed, summary 336 chars, 4 inferred
+lines, no forbidden text leaked, no host linking.
 
 Not proven: `HttpGmail` against the live API (needs an OAuth token the workspace does not hold).
