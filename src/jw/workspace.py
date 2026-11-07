@@ -643,7 +643,7 @@ class Workspace:
                 "outdated": [item for item in items if item["state"] == "outdated"]}
 
     def status(self):
-        return {"schema_version": 13, "profile_published": bool(self.db.execute(
+        return {"schema_version": 14, "profile_published": bool(self.db.execute(
                     "SELECT published FROM profile").fetchone()[0]),
                 "tasks": [dict(row) for row in self.db.execute(
                     "SELECT id,kind,state,attempts,deadline FROM tasks ORDER BY created_at,id")],

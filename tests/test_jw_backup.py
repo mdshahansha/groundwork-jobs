@@ -55,7 +55,7 @@ class BackupTests(unittest.TestCase):
     def test_backup_has_manifest_and_restores_round_trip(self):
         made = bk.backup(self.ws, self.dest)
         manifest = json.loads(Path(made["backup"] + ".json").read_text(encoding="utf-8"))
-        self.assertEqual((13, "none"), (manifest["schema_version"], manifest["secrets"]))
+        self.assertEqual((14, "none"), (manifest["schema_version"], manifest["secrets"]))
         self.ws.close()
         self.ws = None
         result = bk.restore(self.root, made["backup"])
@@ -126,7 +126,7 @@ class BackupTests(unittest.TestCase):
         self.ws = None
         manifest = Path(made + ".json")
         good = manifest.read_text(encoding="utf-8")
-        manifest.write_text(good.replace('"schema_version": 13', '"schema_version": 99'), encoding="utf-8")
+        manifest.write_text(good.replace('"schema_version": 14', '"schema_version": 99'), encoding="utf-8")
         self.assertCode("unsupported_schema", bk.restore, self.root, made)
         manifest.write_text(good, encoding="utf-8")
         with open(made, "ab") as stream:
@@ -136,7 +136,7 @@ class BackupTests(unittest.TestCase):
     def test_older_schema_backup_migrates_forward(self):
         made = bk.backup(self.ws, self.dest)["backup"]
         db = sqlite3.connect(made)
-        for table in ("followups", "suppressions", "history_rows", "history_imports", "attempts", "leases"):
+        for table in ("mail_ignored_senders", "mail_events", "mail_checkpoint", "followups", "suppressions", "history_rows", "history_imports", "attempts", "leases"):
             db.execute(f"DROP TABLE {table}")
         db.execute("ALTER TABLE action_envelopes DROP COLUMN job_id")
         db.execute("PRAGMA user_version=8")
@@ -145,7 +145,7 @@ class BackupTests(unittest.TestCase):
         bk._write_manifest(made, 8, "2026-11-01T00:00:00+00:00", 0)
         self.ws.close()
         self.ws = None
-        self.assertEqual((8, 13), tuple(bk.restore(self.root, made)[k] for k in ("from_schema", "schema_version")))
+        self.assertEqual((8, 14), tuple(bk.restore(self.root, made)[k] for k in ("from_schema", "schema_version")))
 
     def test_cli_backup_and_restore_require_confirm(self):
         self.ws.close()

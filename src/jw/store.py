@@ -147,7 +147,18 @@ FOLLOWUP_SCHEMA = (
     "state TEXT NOT NULL CHECK(state IN ('scheduled','reserved','cancelled')), reason TEXT, "
     "action_id TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(attempt_id, seq))",
 )
-SCHEMA_VERSION = 13
+# JW-14: mailbox sync. Events hold hashes, a bounded excerpt and the match signals, never the body.
+MAIL_SCHEMA = (
+    "CREATE TABLE mail_checkpoint (singleton INTEGER PRIMARY KEY CHECK(singleton=1), history_id INTEGER NOT NULL, "
+    "updated_at TEXT NOT NULL)",
+    "CREATE TABLE mail_events (message_id TEXT PRIMARY KEY, thread_id TEXT NOT NULL, history_id INTEGER NOT NULL, "
+    "sender_sha256 TEXT NOT NULL, sender_domain TEXT NOT NULL, subject_sha256 TEXT NOT NULL, excerpt TEXT NOT NULL, "
+    "classification TEXT NOT NULL, confidence REAL NOT NULL, job_id TEXT REFERENCES jobs(id), attempt_id TEXT, "
+    "signals TEXT NOT NULL, state TEXT NOT NULL CHECK(state IN ('attached','review','dismissed','not_job_related','ignored')), "
+    "received_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+    "CREATE TABLE mail_ignored_senders (sender_sha256 TEXT PRIMARY KEY, at TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 14
 
 
 class Store:
@@ -271,6 +282,14 @@ class Store:
                     for statement in FOLLOWUP_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=13")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 13:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 13:
+                    for statement in MAIL_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=14")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
