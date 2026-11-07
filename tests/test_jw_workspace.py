@@ -260,7 +260,7 @@ class WorkspaceTests(unittest.TestCase):
         self.ws.db.execute("PRAGMA user_version=1")
 
     def test_cli_unavailable_capabilities_have_nonzero_machine_errors(self):
-        for command in ("ready-export", "send", "ats-submit", "restore", "capture", "schedule"):
+        for command in ("ready-export", "send", "ats-submit", "capture", "schedule"):
             output = io.StringIO()
             with redirect_stdout(output):
                 status = main(["--workspace", str(self.root), command])

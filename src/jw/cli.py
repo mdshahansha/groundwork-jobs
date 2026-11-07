@@ -50,8 +50,10 @@ COMMANDS = {
     "delete-preview": ({"source_id"}, set()),
     "source-delete": ({"source_id", "confirm"}, set()),
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
+    "backup": (set(), {"to"}),
+    "restore": ({"backup", "confirm"}, set()),
 }
-UNSUPPORTED = {"ready-export", "send", "ats-submit", "capture", "restore", "schedule"}
+UNSUPPORTED = {"ready-export", "send", "ats-submit", "capture", "schedule"}
 
 
 def read_bounded(path):
@@ -151,6 +153,9 @@ def dispatch(ws, command, data):
         return ws.delete_source(data["source_id"])
     if command == "outcome-record":
         return ws.record_outcome(**data)
+    if command == "backup":
+        from .backup import backup
+        return backup(ws, data.get("to"))
     return ws.status()
 
 
@@ -170,6 +175,15 @@ def main(argv=None):
         needs_input = args.command in COMMANDS or args.command == "source-import"
         require(bool(args.input) == needs_input, "invalid_arguments", "Provide --input only for commands requiring payloads.")
         raw = read_bounded(args.input) if needs_input else None
+        if args.command == "restore":
+            # The live database is replaced, so no connection may stay open.
+            from .backup import restore
+            data = parse_json(raw)
+            fields(data, *COMMANDS["restore"])
+            require(data["confirm"] is True, "confirmation_required", "Restore replaces workspace data; confirm.")
+            string(data["backup"], 4096)
+            print(canonical({"ok": True, "result": restore(args.workspace, data["backup"])}))
+            return 0
         ws = Workspace(args.workspace, create=args.command == "init")
         if args.command == "source-import":
             result = ws.import_source(raw, provenance=args.provenance, sensitivity=args.sensitivity)

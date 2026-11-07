@@ -434,7 +434,7 @@ class Workspace:
                 "source_ids": descendants,
                 "erased": ["raw", "extracted_text", "claim_text", "dependent_packets_and_outputs"],
                 "retained": ["opaque_ids", "hashes", "audit_timestamps", "deletion_marker"],
-                "limitations": "External exports, filesystem snapshots and backups are not recalled. Restore is disabled."}
+                "limitations": "External exports and filesystem snapshots are not recalled. Backups purge at the next rotation; restore re-applies the deletion journal."}
 
     def _descendants(self, source_id):
         return [row[0] for row in self.db.execute(
@@ -467,6 +467,8 @@ class Workspace:
             self.store.audit("source_deleted", source_id)
         # Physical-media erasure is not guaranteed (WAL/readers, snapshots, SSDs).
         self.db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        from .backup import sync_journal
+        sync_journal(self)
         return dict(preview, state="logically_erased")
 
     def record_outcome(self, job_id, kind, effective_at):
