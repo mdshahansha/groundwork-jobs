@@ -8,7 +8,7 @@ source posts and layered deduplication (JW-21), the Gmail adapter (JW-02), appro
 | --- | --- | --- |
 | 1. Intake | `src/jw/leads.py`; `lead-import`, `lead-fetch` | Done |
 | 2. Filters and fit | `src/jw/lead_filter.py`; `lead-filter` | Done |
-| 3. Drafting | per-post e-mail under the application standard; risk check | Planned |
+| 3. Drafting | `src/jw/lead_drafts.py`; `lead-draft-packet`, `lead-draft-submit`, `lead-drafts` (schema 17) | Done |
 | 4. Send queue | batch approval, `jw` send with action IDs, bounce and reply handling through `mail-sync` | Planned |
 | 5. Dashboard | pipeline counts, daily runs, errors | Planned |
 | 6. Daily run | scheduled intake, filter and drafting; waits for batch approval | Planned |
@@ -60,6 +60,23 @@ overlap with the profile stack, 20 % role, 20 % experience) with the matched ski
 Live run over the phase-1 workspace, 2026-11-07: 904 opportunities, 8 kept. Dropped: location 592,
 experience 428, excluded stack 368, too old 270, role 98, applied 82, poster volume 16 (a lead can
 fail several rules).
+
+## Phase 3: drafting
+
+The host model writes each e-mail from `lead-draft-packet` (post, candidate facts file, writing
+standard). `lead-draft-submit` stores it in `lead_drafts` with a risk report and state `ready` or
+`blocked`. Blocking checks: a figure in neither facts nor post, a technology the facts lack, stock or
+desperate wording, CTC/salary/notice when the post did not ask, over 180 words or a 90-character
+subject, a subject without the candidate's name and role, no attached-resume line, no contact
+address. A post asking for date of birth, PAN or Aadhaar is flagged for the candidate, not blocked.
+Resubmitting a lead discards its earlier draft. The facts file stays outside the repository.
+
+Live review, 2026-11-07, caught six filter defects in phase 2 before any draft (women-only drive,
+"5.1-11 years" read as 1, Texas/OPT, a ₹6,000/month project-manager gig, security engineer,
+unrelated stacks); all fixed with regression tests. Of the 4 leads left, 2 drafts are ready
+(Aquainsys, Infosys with a date-of-birth flag). The checker blocked "Django" in two drafts because
+the candidate profile does not support it; one draft was reworded, the Django-first lead dropped,
+and an ML/sensor-data lead was skipped as unsupported.
 
 LinkedIn rate limits are respected, not bypassed: a signed-in session stops at the first
 unusual-traffic warning.

@@ -24,9 +24,11 @@ TARGET = re.compile(r"node|react|java\b|spring|full[ -]?stack|mern|backend|back[
                     r"llm|golang|\bgo\b developer|python|typescript|software (?:engineer|developer)|\bsde\b|"
                     r"forward deployed|next\.?js|javascript", re.I)
 EXCLUDE = re.compile(r"(?:\.net\b|\bc#|\b(?:intern|internship|unpaid|freshers?|php|laravel|angular developer|SAP|"
-                     r"salesforce|QA|tester|devops engineer|data engineer|embedded|business analyst|flutter|"
+                     r"salesforce|QA|tester|devops engineer|data engineer|embedded|business analyst|flutter|project manager|"
+                     r"security engineer|female candidates|women candidates|women only|"
                      r"open to work|opentowork)\b)", re.I)
-ABROAD = re.compile(r"\b(USA?|Unite[ds]? States|usajobs|W2|C2C|H1B|H-1B|Green Card|EAD|USC|Canada|UK|United Kingdom|Europe|"
+ABROAD = re.compile(r"\b(USA?|Unite[ds]? States|usajobs|OPT|CPT|Texas|California|New York|Virginia|New Jersey|"
+                    r"Florida|Illinois|Washington DC|Irving|Dallas|Austin|Seattle|W2|C2C|H1B|H-1B|Green Card|EAD|USC|Canada|UK|United Kingdom|Europe|"
                     r"EU only|Germany|Dubai|UAE|Saudi|Qatar|Singapore|Malaysia|Pakistan|Karachi|Lahore|"
                     r"Philippines|Nigeria|Australia|LATAM|Latin America|Brazil|Mexico)\b")
 SKILLS = ("javascript", "typescript", "react", "next.js", "node", "express", "java", "spring boot", "react native",

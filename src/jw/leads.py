@@ -18,7 +18,7 @@ from .opportunities import Opportunities
 
 SOURCES = ("naukri_mail", "linkedin_posts", "himalayas", "remoteok")
 EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)*\.[a-z]{2,}", re.I)
-YEARS = re.compile(r"(\d{1,2})\s*(?:\+|(?:-|–|to)\s*(\d{1,2}))?\s*\+?\s*(?:years?|yrs?)", re.I)
+YEARS = re.compile(r"(\d{1,2}(?:\.\d+)?)\s*(?:\+|(?:-|–|to)\s*(\d{1,2}(?:\.\d+)?))?\s*\+?\s*(?:years?|yrs?)", re.I)
 INDIA = re.compile(r"India|Bangalore|Bengaluru|Pune|Hyderabad|Chennai|Noida|Gurgaon|Gurugram|Mumbai|Kolkata|"
                    r"Delhi|Ahmedabad|Kochi|Jaipur|Indore|Coimbatore|Mohali|Chandigarh|Bhubaneswar|"
                    r"Trivandrum|Thiruvananthapuram|Nagpur|Lucknow|Ghaziabad|Remote", re.I)
@@ -33,9 +33,9 @@ FREE_MAIL = ("gmail.com", "yahoo.com", "yahoo.in", "outlook.com", "hotmail.com",
 def years(text):
     """(min, max) years the posting asks for, from the first range or N+ it states; (None, None) if none."""
     for match in YEARS.finditer(text or ""):
-        low = int(match.group(1))
+        low = int(float(match.group(1)))
         if 0 <= low < 30:
-            high = int(match.group(2)) if match.group(2) else None
+            high = int(float(match.group(2))) if match.group(2) else None
             return low, high
     return None, None
 

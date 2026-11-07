@@ -36,6 +36,9 @@ COMMANDS = {
     "lead-import": ({"source", "path"}, set()),
     "lead-fetch": ({"source"}, {"token_env", "days", "limit"}),
     "lead-filter": (set(), {"policy", "applied_path", "export_path", "now", "limit"}),
+    "lead-draft-packet": ({"post_id", "facts_path"}, set()),
+    "lead-draft-submit": ({"post_id", "subject", "body", "facts_path", "candidate"}, set()),
+    "lead-drafts": (set(), {"state"}),
     "merge-decide": ({"merge_id", "accept"}, set()),
     "merge-undo": ({"merge_id"}, set()),
     "opportunities": (set(), {"cursor", "limit"}),
@@ -217,6 +220,14 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command.startswith("lead-draft"):
+        from . import lead_drafts
+        if command == "lead-draft-packet":
+            return lead_drafts.packet(ws, data["post_id"], data["facts_path"])
+        if command == "lead-draft-submit":
+            return lead_drafts.submit(ws, data["post_id"], data["subject"], data["body"], data["facts_path"],
+                                      data["candidate"])
+        return {"drafts": lead_drafts.drafts(ws, data.get("state"))}
     if command == "lead-filter":
         from datetime import datetime
         from . import lead_filter

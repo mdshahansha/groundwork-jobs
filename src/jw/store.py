@@ -177,7 +177,15 @@ ACTIVITY_SCHEMA = (
     "CREATE TABLE activity (id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL REFERENCES jobs(id), "
     "run_id TEXT, event TEXT NOT NULL, at TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 16
+# Lead pipeline phase 3: one application e-mail draft per lead, written by the host model and checked here.
+LEAD_DRAFT_SCHEMA = (
+    "CREATE TABLE lead_drafts (id TEXT PRIMARY KEY, post_id TEXT NOT NULL REFERENCES source_posts(id), "
+    "to_address TEXT NOT NULL, subject TEXT NOT NULL, body TEXT NOT NULL, risk TEXT NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('ready','blocked','sent','discarded')), created_at TEXT NOT NULL, "
+    "updated_at TEXT NOT NULL)",
+    "CREATE INDEX lead_drafts_post ON lead_drafts(post_id)",
+)
+SCHEMA_VERSION = 17
 
 
 class Store:
@@ -327,6 +335,14 @@ class Store:
                     for statement in ACTIVITY_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=16")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 16:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 16:
+                    for statement in LEAD_DRAFT_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=17")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")

@@ -54,6 +54,15 @@ class LeadFilterTests(unittest.TestCase):
         self.assertEqual(["Backend Engineer"], [lead["title"] for lead in result["leads"]])
         self.assertEqual({"location": 1, "role": 1}, result["dropped"])
 
+    def test_live_review_regressions(self):
+        cases = ["Hiring Java Developer (Female Candidates), Hyderabad, 3-5 years. Mail a@f.example",
+                 "Hiring Java Full Stack Developer, Chennai, Experience: 5.1-11 Years. Mail a@d.example",
+                 "Hiring Node.js & React Developer, Irving, Texas. OPT welcome. Mail a@t.example",
+                 "Hiring Technical Project Manager + Developer, React, remote India. Mail a@p.example",
+                 "Senior Security Engineer, GenAI guardrails, Remote India, 4+ years. Mail a@s.example"]
+        result = self.run_with([dict(post(c), author=f"R{i}") for i, c in enumerate(cases)])
+        self.assertEqual(0, result["kept"])
+
     def test_high_volume_poster_is_dropped(self):
         spam = [post(f"Hiring React Developer {i}, Pune, 3 years. Mail r{i}@spam.example", author="Spammer")
                 for i in range(5)]
