@@ -62,6 +62,9 @@ COMMANDS = {
     "schedule-set": ({"policy"}, set()),
     "schedule-next": ({"channel"}, set()),
     "suppress": ({"address", "reason"}, {"company"}),
+    "metrics": (set(), set()),
+    "activity-record": ({"job_id", "event"}, {"run_id"}),
+    "activity-time": ({"job_id"}, set()),
     "pause": (set(), set()),
     "resume": ({"holder"}, {"seconds"}),
     "checkpoint": (set(), set()),
@@ -200,6 +203,13 @@ def dispatch(ws, command, data):
         if command == "merge-undo":
             return opps.unmerge(data["merge_id"])
         return opps.page(data.get("cursor"), data.get("limit", 20))
+    if command in ("metrics", "activity-record", "activity-time"):
+        from . import metrics
+        if command == "metrics":
+            return metrics.report(ws)
+        if command == "activity-record":
+            return metrics.record_activity(ws, data["job_id"], data["event"], data.get("run_id"))
+        return metrics.active_time(ws, data["job_id"])
     if command == "suppress":
         from .suppression import suppress
         return suppress(ws, data["address"], data["reason"], data.get("company"))

@@ -172,7 +172,12 @@ OPPORTUNITY_SCHEMA = (
     "state TEXT NOT NULL CHECK(state IN ('proposed','merged','rejected','undone')), created_at TEXT NOT NULL, "
     "updated_at TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 15
+# JW-19: candidate activity events, for active versus elapsed time with idle gaps excluded.
+ACTIVITY_SCHEMA = (
+    "CREATE TABLE activity (id INTEGER PRIMARY KEY AUTOINCREMENT, job_id TEXT NOT NULL REFERENCES jobs(id), "
+    "run_id TEXT, event TEXT NOT NULL, at TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 16
 
 
 class Store:
@@ -312,6 +317,14 @@ class Store:
                     for statement in OPPORTUNITY_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=15")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 15:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 15:
+                    for statement in ACTIVITY_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=16")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")

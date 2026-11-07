@@ -1,0 +1,234 @@
+{
+ "version": 1,
+ "labelled_by": "synthetic, hand-labelled",
+ "cases": [
+  {
+   "id": "same-external-id",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "external_id": "1"
+   },
+   "b": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "external_id": "1"
+   },
+   "same": true
+  },
+  {
+   "id": "tracking-url",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "url": "https://jobs.example.com/x?utm_source=a"
+   },
+   "b": {
+    "provider": "careers",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "url": "https://www.jobs.example.com/x/"
+   },
+   "same": true
+  },
+  {
+   "id": "requisition",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "requisition": "R-1"
+   },
+   "b": {
+    "provider": "careers",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "Different wording entirely about this role.",
+    "requisition": "R-1"
+   },
+   "same": true
+  },
+  {
+   "id": "title-case-spacing",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Fixture Co",
+    "title": "backend  engineer",
+    "location": "Berlin",
+    "text": "We are hiring a backend  engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "same": true
+  },
+  {
+   "id": "near-duplicate-text",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer II",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer II to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Fixture Co",
+    "title": "Backend Engineer 2",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer 2 to build Python services and APIs for payments at scale in a small team."
+   },
+   "same": true
+  },
+  {
+   "id": "berlin-vs-pune",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Pune",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "same": false
+  },
+  {
+   "id": "different-requisitions",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "requisition": "R-1"
+   },
+   "b": {
+    "provider": "careers",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "requisition": "R-2"
+   },
+   "same": false
+  },
+  {
+   "id": "different-company",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Other Ltd",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "same": false
+  },
+  {
+   "id": "different-role",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Fixture Co",
+    "title": "Data Scientist",
+    "location": "Berlin",
+    "text": "Build forecasting models in R for marketing."
+   },
+   "same": false
+  },
+  {
+   "id": "recruiter-only",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "recruiter": "jane@x.invalid"
+   },
+   "b": {
+    "provider": "mail",
+    "company": "Fixture Co",
+    "title": "Platform Lead",
+    "location": "Berlin",
+    "text": "Lead the platform group.",
+    "recruiter": "jane@x.invalid"
+   },
+   "same": false
+  },
+  {
+   "id": "same-url-different-location",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "url": "https://jobs.example.com/y"
+   },
+   "b": {
+    "provider": "careers",
+    "company": "Fixture Co",
+    "title": "Backend Engineer",
+    "location": "Remote",
+    "text": "We are hiring a Backend Engineer to build Python services and APIs for payments at scale in a small team.",
+    "url": "https://jobs.example.com/y"
+   },
+   "same": false
+  },
+  {
+   "id": "senior-vs-junior",
+   "a": {
+    "provider": "linkedin",
+    "company": "Fixture Co",
+    "title": "Senior Backend Engineer",
+    "location": "Berlin",
+    "text": "We are hiring a Senior Backend Engineer to build Python services and APIs for payments at scale in a small team."
+   },
+   "b": {
+    "provider": "indeed",
+    "company": "Fixture Co",
+    "title": "Junior Backend Engineer",
+    "location": "Berlin",
+    "text": "Entry level role supporting the backend team with tickets."
+   },
+   "same": false
+  }
+ ]
+}
