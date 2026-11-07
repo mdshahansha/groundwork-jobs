@@ -11,5 +11,5 @@
 PyYAML>=6.0.3
 
 # Synthetic fixed-template PDF qualification (application extra, not plugin runtime).
-reportlab==4.4.9
+reportlab==5.1.0
 pypdf==6.21.4
