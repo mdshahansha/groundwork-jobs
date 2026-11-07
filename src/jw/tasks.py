@@ -389,6 +389,9 @@ class Tasks:
     def _usage(self, usage):
         fields(usage, {"model", "input_tokens", "output_tokens"})
         string(usage["model"], 200)
+        pinned = self.ws.model_pin()
+        require(pinned is None or usage["model"] == pinned, "model_mismatch",
+                "Output came from a different model than the pinned one; rerun with the pinned model.")
         for key in ("input_tokens", "output_tokens"):
             value = usage[key]
             require(value is None or (type(value) is int and value >= 0),

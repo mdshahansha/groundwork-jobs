@@ -5,7 +5,7 @@ import json
 import re
 import uuid
 
-from .contracts import (MAX_BYTES, PROVENANCE, SENSITIVITY, VERSIONS, canonical,
+from .contracts import (MAX_BYTES, PROVENANCE, SENSITIVITY, VERSIONS, WorkspaceError, canonical,
                         digest, fields, require, string, utcnow, instant, image_markup)
 from .store import Store
 
@@ -421,7 +421,28 @@ class Workspace:
         profile.pop("singleton")
         return {"profile": profile, "evidence": self.evidence(),
                 "job": json.loads(self.store.one("jobs", job_id)["data"]),
-                "versions": VERSIONS, "calculation_date": utcnow()[:10]}
+                "versions": self.versions(), "calculation_date": utcnow()[:10]}
+
+    def model_pin(self):
+        row = self.db.execute("SELECT value FROM controls WHERE name='model_pin'").fetchone()
+        return row["value"] if row else None
+
+    def versions(self):
+        return dict(VERSIONS, model=self.model_pin() or VERSIONS["model"])
+
+    def pin_model(self, model):
+        """Pin the host model. Changing it changes every dependency fingerprint, so pending tasks
+        go stale and rankings need a refresh; output from another model is refused."""
+        require(model is None or (isinstance(model, str) and 0 < len(model) <= 200 and model.strip() == model),
+                "invalid_schema", "Model is a non-empty name or null to unpin.")
+        with self.store.transaction():
+            if model is None:
+                self.db.execute("DELETE FROM controls WHERE name='model_pin'")
+            else:
+                self.db.execute("INSERT INTO controls VALUES ('model_pin',?) ON CONFLICT(name) DO UPDATE "
+                                "SET value=excluded.value", (model,))
+            self.store.audit("model_pinned" if model else "model_unpinned", "controls")
+        return {"model": model, "versions": self.versions()}
 
     def deletion_preview(self, source_id):
         self.store.one("sources", source_id)
@@ -543,7 +564,9 @@ class Workspace:
             matrix = matrix + extra
             fingerprint = digest({"dependencies": dependencies, "mapping": matrix, "assessment": assessment,
                                   "calculation": result["version"], "policy": policy_hash})
-            result.update(job_id=job_id, requirement_matrix=matrix, policy_hash=policy_hash,
+            result.update(inputs={"mapping": mapping, "assessment": assessment,
+                                  "preferred_mapping": preferred_mapping or []},
+                          job_id=job_id, requirement_matrix=matrix, policy_hash=policy_hash,
                           dependency_fingerprint=digest(dependencies), ranking_fingerprint=fingerprint,
                           assessment_origin="candidate_supplied_not_semantically_verified")
             ranking_id = identifier("rnk")
@@ -554,6 +577,32 @@ class Workspace:
             self.store.audit("ranking_recorded", ranking_id)
             result["ranking_id"] = ranking_id
             return result
+
+    def refresh_rankings(self):
+        """Re-rank every job whose newest ranking no longer matches its dependencies or policy,
+        from the inputs that ranking recorded. A ranking that cannot be rebuilt (revoked evidence,
+        changed requirements) is left outdated with the reason, never silently kept current."""
+        _, policy_hash = self.active_policy()
+        latest = self.db.execute("SELECT r.* FROM rankings r WHERE r.created_at=(SELECT max(created_at) "
+                                 "FROM rankings WHERE job_id=r.job_id) ORDER BY r.job_id").fetchall()
+        report = {"refreshed": [], "unchanged": [], "failed": []}
+        for row in latest:
+            result = json.loads(row["result"])
+            if (row["state"] == "current" and row["policy_hash"] == policy_hash and
+                    result["dependency_fingerprint"] == digest(self.dependencies(row["job_id"]))):
+                report["unchanged"].append(row["job_id"])
+                continue
+            inputs = result.get("inputs")
+            try:
+                require(inputs is not None, "inputs_unavailable", "This ranking predates recorded inputs.")
+                fresh = self.rank(row["job_id"], inputs["mapping"], inputs["assessment"], inputs["preferred_mapping"])
+                report["refreshed"].append({"job_id": row["job_id"], "ranking_id": fresh["ranking_id"]})
+            except WorkspaceError as exc:
+                with self.store.transaction():
+                    self.db.execute("UPDATE rankings SET state='outdated' WHERE job_id=? AND state='current'",
+                                    (row["job_id"],))
+                report["failed"].append({"job_id": row["job_id"], "code": exc.code})
+        return report
 
     def rankings(self, include_outdated=False):
         """Shortlist from pinned rankings: eligible by score, then excluded jobs, with policy and state."""

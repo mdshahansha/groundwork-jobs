@@ -51,6 +51,8 @@ COMMANDS = {
     "source-delete": ({"source_id", "confirm"}, set()),
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
     "backup": (set(), {"to"}),
+    "model-pin": ({"model"}, set()),
+    "rankings-refresh": (set(), set()),
     "restore": ({"backup", "confirm"}, set()),
 }
 UNSUPPORTED = {"ready-export", "send", "ats-submit", "capture", "schedule"}
@@ -153,6 +155,10 @@ def dispatch(ws, command, data):
         return ws.delete_source(data["source_id"])
     if command == "outcome-record":
         return ws.record_outcome(**data)
+    if command == "model-pin":
+        return ws.pin_model(data["model"])
+    if command == "rankings-refresh":
+        return ws.refresh_rankings()
     if command == "backup":
         from .backup import backup
         return backup(ws, data.get("to"))
