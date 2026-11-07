@@ -11,7 +11,7 @@ dependencies = []
 
 [project.optional-dependencies]
 render = ["reportlab==4.4.9"]
-render-test = ["reportlab==4.4.9", "pypdf==6.10.0"]
+render-test = ["reportlab==4.4.9", "pypdf==6.21.4"]
 
 [project.scripts]
 jw = "jw.cli:main"
