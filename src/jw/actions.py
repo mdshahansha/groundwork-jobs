@@ -68,17 +68,20 @@ class Actions:
         require(row is not None and row["published"] == 1, "profile_unpublished", "Publish the corrected profile first.")
         return digest(dict(row))
 
-    def create_envelope(self, channel, destination, content, attachments=()):
+    def create_envelope(self, channel, destination, content, attachments=(), job_id=None):
         """Freeze one action. Envelopes have no update path: an edit is a new envelope."""
         channel = self._channel(channel)
         string(destination, 2000)
         hashes = attachment_hashes(list(attachments))
         hashed = content_hash(channel, content)
         with self.store.transaction():
+            if job_id is not None:
+                self.store.one("jobs", job_id)
             envelope_id = identifier("env")
-            self.db.execute("INSERT INTO action_envelopes VALUES (?,?,?,?,?,?,?,?,?)",
+            self.db.execute("INSERT INTO action_envelopes (id,channel,action_type,destination,content,content_hash,"
+                            "attachment_hashes,profile_version,created_at,job_id) VALUES (?,?,?,?,?,?,?,?,?,?)",
                             (envelope_id, channel, CHANNELS[channel], destination, canonical(content),
-                             hashed, canonical(hashes), self.profile_version(), utcnow()))
+                             hashed, canonical(hashes), self.profile_version(), utcnow(), job_id))
             self.store.audit("envelope_created", envelope_id)
         return {"envelope_id": envelope_id, "channel": channel, "action_type": CHANNELS[channel],
                 "content_hash": hashed, "attachment_hashes": hashes}

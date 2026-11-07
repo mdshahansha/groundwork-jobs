@@ -312,9 +312,9 @@ class CommandsAndMigration(Base):
         db.close()
         Store(self.root).close()
         self.ws = Workspace(self.root)
-        self.assertEqual(9, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
+        self.assertEqual(10, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
         self.assertCode("policy_missing", self.ws.active_policy)
-        self.assertEqual(9, self.ws.status()["schema_version"])
+        self.assertEqual(10, self.ws.status()["schema_version"])
 
 
 if __name__ == "__main__":

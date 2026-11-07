@@ -52,6 +52,10 @@ COMMANDS = {
     "outcome-record": ({"job_id", "kind", "effective_at"}, set()),
     "backup": (set(), {"to"}),
     "model-pin": ({"model"}, set()),
+    "pause": (set(), set()),
+    "resume": ({"holder"}, {"seconds"}),
+    "checkpoint": (set(), set()),
+    "application-state": ({"job_id"}, set()),
     "rankings-refresh": (set(), set()),
     "restore": ({"backup", "confirm"}, set()),
 }
@@ -155,6 +159,15 @@ def dispatch(ws, command, data):
         return ws.delete_source(data["source_id"])
     if command == "outcome-record":
         return ws.record_outcome(**data)
+    if command in ("pause", "resume", "checkpoint"):
+        from .actions import Actions
+        from .execution import Executor
+        from .runs import Runs
+        runs = Runs(Executor(Actions(ws)))
+        return {"pause": runs.pause, "resume": runs.resume, "checkpoint": runs.checkpoint}[command](**data)
+    if command == "application-state":
+        from .runs import reduce_application
+        return reduce_application(ws, data["job_id"])
     if command == "model-pin":
         return ws.pin_model(data["model"])
     if command == "rankings-refresh":

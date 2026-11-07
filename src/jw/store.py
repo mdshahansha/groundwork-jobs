@@ -121,7 +121,9 @@ EXECUTION_SCHEMA = (
     "state TEXT NOT NULL CHECK(state IN ('in_flight','accepted','failed','unknown')), provider_ref TEXT, "
     "evidence TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 9
+# JW-20: an envelope may name the job it acts for, so the reducer can place its attempts.
+RUN_SCHEMA = ("ALTER TABLE action_envelopes ADD COLUMN job_id TEXT REFERENCES jobs(id)",)
+SCHEMA_VERSION = 10
 
 
 class Store:
@@ -213,6 +215,14 @@ class Store:
                     for statement in EXECUTION_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=9")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 9:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 9:
+                    for statement in RUN_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=10")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
