@@ -7,7 +7,7 @@ check, exchanges the code, and writes JW_GMAIL_CLIENT_ID, JW_GMAIL_CLIENT_SECRET
 JW_GMAIL_REFRESH_TOKEN to the .env file (mode 600). Tokens are never printed. After this, jw renews
 its 1-hour access tokens by itself (`jw.gmail.access_token`).
 
-    python tools/gmail_oauth_setup.py --env /path/to/.env --client-id ... --client-secret ...
+    python tools/gmail_oauth_setup.py --env /path/to/.env --client-json ~/Downloads/client_secret_XXXX.json
 """
 
 import argparse
@@ -95,7 +95,11 @@ def main():
     parser.add_argument("--env", required=True, help="the .env file to update (outside the repository)")
     parser.add_argument("--client-id", default=os.environ.get("JW_GMAIL_CLIENT_ID"))
     parser.add_argument("--client-secret", default=os.environ.get("JW_GMAIL_CLIENT_SECRET"))
+    parser.add_argument("--client-json", help="the client_secret_*.json downloaded from Google Cloud (Desktop app)")
     args = parser.parse_args()
+    if args.client_json:
+        installed = json.loads(Path(args.client_json).expanduser().read_text(encoding="utf-8")).get("installed", {})
+        args.client_id, args.client_secret = installed.get("client_id"), installed.get("client_secret")
     if not (args.client_id and args.client_secret):
         parser.error("Pass --client-id and --client-secret (or set JW_GMAIL_CLIENT_ID / JW_GMAIL_CLIENT_SECRET).")
     refresh = authorize(args.client_id, args.client_secret)
