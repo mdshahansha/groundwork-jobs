@@ -24,7 +24,7 @@ COMMANDS = {
     "paraphrase-revoke": ({"paraphrase_id"}, set()),
     "job-add": ({"company", "title", "description", "requirements"},
                 {"requisition", "preferred_requirements", "required_authorisations",
-                 "mandatory_credentials", "remote_regions", "required_formats"}),
+                 "mandatory_credentials", "remote_regions", "required_formats", "page_limit"}),
     "policy-set": ({"policy"}, set()),
     "mapping-propose": ({"job_id", "group", "index", "claim_id", "consent"}, set()),
     "mapping-review-packet": ({"mapping_review_id"}, set()),
@@ -49,6 +49,7 @@ COMMANDS = {
     "draft-export": ({"task_id"}, set()),
     "draft-render": ({"task_id", "output_path"}, set()),
     "draft-verify": ({"task_id"}, set()),
+    "render-font": (set(), {"path"}),
     "draft-readiness": ({"task_id"}, set()),
     "mail-sync": ({"transport"}, {"path", "token_env", "scopes", "budget", "allowed"}),
     "mail-review": (set(), set()),
@@ -177,6 +178,8 @@ def dispatch(ws, command, data):
         return tasks.verify_draft(**data)
     if command == "draft-render":
         return tasks.render_private(**data)
+    if command == "render-font":
+        return tasks.set_render_font(data.get("path"))
     if command == "profile-map":
         from .integrations import map_profile
         with ws.store.transaction():

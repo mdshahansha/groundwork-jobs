@@ -50,10 +50,10 @@ class RenderedDocuments(unittest.TestCase):
     def test_real_cv_and_letter_pass_mechanical_gates_but_are_never_ready(self):
         for kind in ("draft_cv", "draft_letter"):
             pdf, report = render_private_pdf(PROFILE, ASSERTIONS, kind, JOB)
-            self.assertEqual("private-fixed@2", report["template"])
+            self.assertEqual("private-fixed@3", report["template"])
             result = verify(pdf, expected_content(PROFILE, ASSERTIONS, kind, JOB), JOB)
             self.assertEqual(("mechanical_passed", False, []), (result["status"], result["ready"], result["failed_checks"]))
-            self.assertEqual("not_run", result["gates"]["visual_review"]["status"])
+            self.assertEqual("pending_review_task", result["gates"]["visual_review"]["status"])
             self.assertIn("visual_review", result["remaining_gates"])
         self.assertEqual("passed", result["gates"]["text"]["target"]["status"])
 
@@ -122,6 +122,122 @@ class DefectDetection(unittest.TestCase):
         self.assertEqual(["2019"], text["dates"]["detail"]["unknown_dates"])
 
 
+LONG = [{"text": f"Delivered project {i} in 20{10 + i}. " + "Measured outcome detail " * 18, "claim_id": f"c{i}"}
+        for i in range(8)]
+
+
+def page_blocks(page):
+    return [(line, 48, y, "Helvetica", 11) for line, y in page]
+
+
+class MultiPage(unittest.TestCase):
+    def test_two_page_cv_passes_every_gate_and_footers_count_pages(self):
+        job = dict(JOB, page_limit=2)
+        pdf, report = render_private_pdf(PROFILE, LONG, "draft_cv", job)
+        self.assertEqual((2, 2), (report["pages"], report["page_limit"]))
+        result = verify(pdf, expected_content(PROFILE, LONG, "draft_cv", job), job)
+        self.assertEqual(("mechanical_passed", []), (result["status"], result["failed_checks"]))
+        render = result["gates"]["render"]
+        self.assertEqual(("passed", "passed"), (render["excessive_whitespace"]["status"],
+                                                render["page_break_defects"]["status"]))
+        footers = [b["text"] for b in gate_render(pdf, expected_content(PROFILE, LONG, "draft_cv", job))[1]
+                   if b["size"] == 9]
+        self.assertEqual(["Private review only. Quality gates incomplete. Page 1 of 2.",
+                          "Private review only. Quality gates incomplete. Page 2 of 2."], footers)
+
+    def test_page_policy_is_enforced_without_shrinking(self):
+        with self.assertRaises(WorkspaceError) as caught:
+            render_private_pdf(PROFILE, LONG, "draft_letter", JOB)
+        self.assertEqual("page_fit_conflict", caught.exception.code)
+        with self.assertRaises(WorkspaceError):
+            render_private_pdf(PROFILE, LONG, "draft_cv", dict(JOB, page_limit=4))
+        pdf, _ = render_private_pdf(PROFILE, LONG, "draft_cv", dict(JOB, page_limit=2))
+        self.assertIn("compiles", {n for n, c in gate_render(pdf, expected_content(PROFILE, LONG, "draft_cv",
+                                   dict(JOB, page_limit=1)))[0].items() if c["status"] == "failed"})
+
+    def test_short_blocks_never_split_and_long_ones_keep_two_lines_each_side(self):
+        from pypdf import PdfReader
+
+        pdf, _ = render_private_pdf(PROFILE, LONG, "draft_cv", dict(JOB, page_limit=2))
+        expected = expected_content(PROFILE, LONG, "draft_cv", dict(JOB, page_limit=2))
+        starts = [_squash_item for _squash_item in ("".join(i.split()) for i in expected["sequence"])]
+        for page in PdfReader(BytesIO(pdf)).pages:
+            lines = [l for l in page.extract_text().splitlines() if l and not l.startswith("Private review only")]
+            self.assertTrue(any(s.startswith("".join(lines[0].split())) for s in starts) or
+                            not any(s.startswith("".join(lines[1].split())) for s in starts))
+
+    def test_drawn_page_break_and_whitespace_defects_fail(self):
+        from jw.rendering import footer
+
+        job = dict(JOB, page_limit=2)
+        items = [{"text": "Alpha line one alpha line two alpha line three.", "claim_id": "a"},
+                 {"text": "Beta.", "claim_id": "b"}]
+        expected = expected_content(PROFILE, items, "draft_cv", job)
+        head = list(GOOD[:4])
+
+        def two(first, second):
+            from reportlab.pdfgen.canvas import Canvas
+            out = BytesIO()
+            canvas = Canvas(out, pagesize=(PAGE_WIDTH, PAGE_HEIGHT), invariant=1)
+            for number, page in enumerate((first, second), 1):
+                for text, x, y, font, size in page:
+                    canvas.setFont(font, size)
+                    canvas.drawString(x, y, text)
+                canvas.setFont("Helvetica", 9)
+                canvas.drawString(48, 48, footer(number, 2))
+                canvas.showPage()
+            canvas.save()
+            return out.getvalue()
+
+        def failed(pdf):
+            return {n for n, c in gate_render(pdf, expected)[0].items() if c["status"] == "failed"}
+
+        # Alpha's first line alone at the foot of page 1, high on a mostly empty page.
+        body = [(f"Filler {i}.", 48, 657 - 16 * i, "Helvetica", 11) for i in range(36)]
+        lone = two(head + body + [("Alpha line one", 48, 657 - 16 * 36, "Helvetica", 11)],
+                   page_blocks([("alpha line two alpha line three.", 776), ("Beta.", 744)]))
+        self.assertIn("page_break_defects", failed(lone))
+        sparse = two(head, page_blocks([("Alpha line one alpha line two alpha line three.", 776), ("Beta.", 744)]))
+        self.assertIn("excessive_whitespace", failed(sparse))
+        wrong_footer = drawn(*GOOD[:-1], (footer(1, 2), 48, 48, "Helvetica", 9))
+        self.assertIn("footer_collision", {n for n, c in gate_render(wrong_footer)[0].items() if c["status"] == "failed"})
+
+
+class UnicodeFont(unittest.TestCase):
+    """EC-DOC-03 with ReportLab's bundled Bitstream Vera (redistributable): a pinned TrueType font."""
+
+    def setUp(self):
+        import hashlib
+        import reportlab
+
+        path = Path(reportlab.__file__).parent / "fonts" / "Vera.ttf"
+        self.font = {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+
+    def test_non_latin1_name_renders_extracts_and_passes_gates(self):
+        profile = dict(PROFILE, name="Łukasz Yılmaz")
+        pdf, report = render_private_pdf(profile, ASSERTIONS, "draft_letter", JOB, self.font)
+        self.assertEqual("BitstreamVeraSans-Roman", report["font"])
+        result = verify(pdf, expected_content(profile, ASSERTIONS, "draft_letter", JOB, self.font), JOB)
+        self.assertEqual(("mechanical_passed", []), (result["status"], result["failed_checks"]))
+        with self.assertRaises(WorkspaceError) as caught:
+            render_private_pdf(profile, ASSERTIONS, "draft_letter", JOB)
+        self.assertEqual("unsupported_glyph", caught.exception.code)
+
+    def test_uncovered_shaped_and_swapped_fonts_fail_closed(self):
+        for name in ("Zhang 张伟", "Rahul राहुल", "Omar عمر", "Zażółć"):
+            with self.assertRaises(WorkspaceError) as caught:
+                render_private_pdf(dict(PROFILE, name=name), ASSERTIONS, "draft_cv", None, self.font)
+            self.assertEqual("unsupported_glyph", caught.exception.code, name)
+        with self.assertRaises(WorkspaceError) as caught:
+            render_private_pdf(PROFILE, ASSERTIONS, "draft_cv", None, dict(self.font, sha256="0" * 64))
+        self.assertEqual("toolchain_version", caught.exception.code)
+
+    def test_helvetica_text_under_a_unicode_template_fails_font_consistency(self):
+        expected = expected_content(PROFILE, ASSERTIONS[:1], "draft_cv", None, self.font)
+        failed = {n for n, c in gate_render(drawn(*GOOD), expected)[0].items() if c["status"] == "failed"}
+        self.assertIn("font_consistency", failed)
+
+
 class WorkspaceVerification(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
@@ -158,6 +274,17 @@ class WorkspaceVerification(unittest.TestCase):
         with self.assertRaises(WorkspaceError):
             self.ws.add_job({"company": "A", "title": "B", "description": "C", "requirements": [],
                              "required_formats": ["exe"]})
+
+    def test_pinned_font_is_used_and_cleared(self):
+        import reportlab
+
+        path = Path(reportlab.__file__).parent / "fonts" / "Vera.ttf"
+        pinned = self.tasks.set_render_font(str(path))
+        self.assertEqual("BitstreamVeraSans-Roman", pinned["font"])
+        self.assertEqual("mechanical_passed", self.tasks.verify_draft(self.task)["status"])
+        self.assertEqual(None, self.tasks.set_render_font()["sha256"])
+        with self.assertRaises(WorkspaceError):
+            self.tasks.set_render_font(str(Path(self.temp.name) / "missing.ttf"))
 
     def test_cli_draft_verify(self):
         self.ws.close()

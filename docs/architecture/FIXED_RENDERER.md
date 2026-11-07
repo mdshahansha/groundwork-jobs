@@ -119,3 +119,62 @@ Tests: `tests/test_jw_verification.py` proves every gate-1 check and the gate-2
 contact, order, target, placeholder, unicode and date checks fail on drawn defect
 PDFs, and that a drawn clean baseline passes. A 2026-11-04 sample letter was
 rasterized with Poppler and inspected: no clipping, overlap or missing text.
+
+## Pages, Unicode font and visual review (JW-09, private-fixed@3, mechanical-gates@2)
+
+**Page policy.** A job may state `page_limit` (1, 2 or 3). The default is 2 for a CV and 1 for a
+letter. Content that does not fit raises `page_fit_conflict`; the font never shrinks and nothing
+is dropped. Each page carries `Private review only. Quality gates incomplete. Page n of N.`
+Pagination rules:
+
+- A heading stays with the start of the block after it.
+- A block of six lines or fewer never splits.
+- A longer block splits only with at least two lines on each side of the break.
+
+**Gates across pages.**
+
+| Check | Fails when |
+|---|---|
+| compiles | page count outside 1..`page_limit` |
+| footer_collision | a page's footer is missing, duplicated, colliding, or not its exact `Page n of N` |
+| orphaned_heading | a heading is the last body line of any page |
+| excessive_whitespace | a non-final page leaves more than 35% of its content area blank |
+| page_break_defects | a block's first line sits alone at a page foot, or its last line alone at the next page's head |
+
+Block boundaries come from the expected content, never from the renderer's layout report. The
+extracted text leaves footers out, so a block wrapped across a break still matches reading order.
+One page still reports the two page checks as `not_applicable`.
+
+**Unicode font (EC-DOC-03).** `render-font` pins an owner-supplied local TrueType file by SHA-256
+in `controls`. Helvetica with Windows-1252 stays the default. ReportLab embeds a subset of the
+pinned font. Renders fail closed:
+
+- `toolchain_version` when the file's hash changes.
+- `unsupported_glyph` when the font has no printing glyph for a character. A cmap entry that maps
+  to `.notdef`, or that has no advance width, does not count as coverage. Bundled Vera maps `ż`
+  that way and printed nothing before this rule.
+- `unsupported_glyph` for scripts that need shaping or right-to-left layout: Hebrew, Arabic,
+  Syriac, Thaana, Indic, Thai, Lao, Tibetan, Myanmar, Khmer, presentation forms and combining marks.
+  `drawString` does neither shaping nor bidi, so the template refuses these scripts rather than
+  print broken text.
+
+Licensing of a pinned font is the owner's. Only private drafts embed it, and no font file is
+committed. Tests use ReportLab's bundled Bitstream Vera, which is redistributable.
+
+**Visual review.** Gates 1-2 report `visual_review` as `pending_review_task`. The page images go to
+the independent review task, and `draft-readiness` requires that review (see `visual.py`, JW-25).
+
+**Model visual review, 2026-11-07.** Inputs:
+
+- A synthetic CV of 8 long assertions with a 2-page limit, in Helvetica.
+- A letter whose name mixes Greek, Cyrillic and CJK, rendered in a locally pinned Arial Unicode
+  (not committed).
+
+Both passed gates 1-2. The pages were rasterised by `visual.rasterise` and inspected:
+
+- No clipping, overlap or missing glyphs.
+- Correct page footers.
+- No block split across the CV page break, and no orphaned heading.
+- Non-Latin glyphs drawn correctly.
+- CV page 1 ends about four lines early, because a six-line block moved whole. That is within the
+  whitespace limit.

@@ -1,7 +1,9 @@
 # CLI contracts, storage schema version 7
 
 JW-09 adds `draft-verify` (`task_id`) and an optional `required_formats` list on
-`job-add`. `draft-render` results add `verification`. See
+`job-add`. `draft-render` results add `verification`. Later JW-09 work adds an optional
+`page_limit` (1-3) on `job-add` and `render-font` (`path` pins a local `.ttf` by SHA-256;
+no `path` clears it). Render results add `page_limit`, `font` and `font_sha256`. See
 [fixed renderer](FIXED_RENDERER.md).
 
 JW-08 adds `task-create` kind `repair` (`draft_id` is the completed review),

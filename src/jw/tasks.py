@@ -122,15 +122,18 @@ class Tasks:
 
             packet = json.loads(draft["packet"])
             kind = document_kind(draft)
-            pdf, _ = render_private_pdf(packet["profile"], output["assertions"], kind, packet["untrusted_job"])
+            pdf, _ = render_private_pdf(packet["profile"], output["assertions"], kind, packet["untrusted_job"],
+                                        self.render_font())
             mechanical = verify(pdf, expected_content(packet["profile"], output["assertions"], kind,
-                                                      packet["untrusted_job"]), packet["untrusted_job"])
+                                                      packet["untrusted_job"], self.render_font()),
+                                packet["untrusted_job"])
             from .visual import rasterise, store_images
 
             pages = rasterise(pdf)
             images = ("not_supplied: install the visual extra (pypdfium2) to give the reviewer page images"
                       if pages is None else store_images(self.ws.store.root, draft["fingerprint"] + "-review", pages))
-            rendered = {"text": gate_render(pdf)[2], "mechanical_status": mechanical["status"],
+            rendered = {"pages": len(pages) if pages else None, "text": gate_render(pdf, expected_content(
+                packet["profile"], output["assertions"], kind, packet["untrusted_job"], self.render_font()))[2], "mechanical_status": mechanical["status"],
                         "failed_checks": mechanical["failed_checks"], "page_images": images}
         except WorkspaceError as exc:
             rendered = {"status": "not_rendered", "reason": exc.code}
@@ -475,6 +478,36 @@ class Tasks:
                     "claim_map": output["assertions"], "fingerprint": task["fingerprint"],
                     "warning": "Rendering and all quality gates are required before employer-ready export."}
 
+    def render_font(self):
+        """The owner-pinned TrueType font ({path, sha256}) or None for the Helvetica default."""
+        row = self.db.execute("SELECT value FROM controls WHERE name='render_font'").fetchone()
+        return json.loads(row["value"]) if row else None
+
+    def set_render_font(self, path=None):
+        """Pin a local TrueType font by SHA-256 for non-Latin text, or clear it with no path.
+
+        The font is the owner's own file and licence; it is subset-embedded in private drafts only.
+        """
+        import hashlib
+        from pathlib import Path
+        from .rendering import load_font
+
+        with self.store.transaction():
+            if path is None:
+                self.db.execute("DELETE FROM controls WHERE name='render_font'")
+                self.store.audit("render_font_cleared", "controls")
+                return {"font": "Helvetica", "sha256": None}
+            string(path, 4096)
+            resolved = Path(path).resolve()
+            require(resolved.suffix.lower() == ".ttf" and resolved.is_file(), "invalid_path",
+                    "Choose an existing .ttf font file.")
+            spec = {"path": str(resolved), "sha256": hashlib.sha256(resolved.read_bytes()).hexdigest()}
+            face = load_font(spec)
+            self.db.execute("INSERT INTO controls VALUES ('render_font',?) ON CONFLICT(name) DO UPDATE SET "
+                            "value=excluded.value", (canonical(spec),))
+            self.store.audit("render_font_set", "controls")
+            return {"font": face["face"], "sha256": spec["sha256"], "glyphs": len(face["covers"])}
+
     def render_private(self, task_id, output_path):
         from .rendering import render_private_pdf, write_new_pdf
 
@@ -487,7 +520,7 @@ class Tasks:
             packet, output = json.loads(task["packet"]), json.loads(task["output"])
             self._validate(task, output)
             pdf, report = render_private_pdf(packet["profile"], output["assertions"], document_kind(task),
-                                             packet["untrusted_job"])
+                                             packet["untrusted_job"], self.render_font())
             verification = self._record_verification(task, packet, output, pdf)
             path = write_new_pdf(output_path, pdf)
             self.store.audit("private_pdf_exported", task_id)
@@ -501,7 +534,7 @@ class Tasks:
 
         kind = document_kind(task)
         result = verify(pdf, expected_content(packet["profile"], output["assertions"], kind,
-                                              packet["untrusted_job"]), packet["untrusted_job"])
+                                              packet["untrusted_job"], self.render_font()), packet["untrusted_job"])
         verification_id = identifier("ver")
         sha = hashlib.sha256(pdf).hexdigest()
         self.db.execute("INSERT INTO verifications VALUES (?,?,?,?,?,?)",
@@ -521,7 +554,7 @@ class Tasks:
             packet, output = json.loads(task["packet"]), json.loads(task["output"])
             self._validate(task, output)
             pdf, report = render_private_pdf(packet["profile"], output["assertions"], document_kind(task),
-                                             packet["untrusted_job"])
+                                             packet["untrusted_job"], self.render_font())
             return dict(self._record_verification(task, packet, output, pdf), template=report["template"],
                         renderer_version=report["renderer_version"])
 
@@ -549,7 +582,7 @@ class Tasks:
                 packet, output = json.loads(task["packet"]), json.loads(task["output"])
                 self._validate(task, output)
                 files[filename], _ = render_private_pdf(packet["profile"], output["assertions"], kind,
-                                                        packet["untrusted_job"])
+                                                        packet["untrusted_job"], self.render_font())
                 for assertion in output["assertions"]:
                     if assertion not in answers:
                         answers.append(assertion)

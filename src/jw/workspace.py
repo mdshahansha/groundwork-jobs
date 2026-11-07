@@ -269,7 +269,7 @@ class Workspace:
     def add_job(self, data):
         fields(data, {"company", "title", "description", "requirements"},
                {"requisition", "preferred_requirements", "required_authorisations",
-                "mandatory_credentials", "remote_regions", "required_formats"})
+                "mandatory_credentials", "remote_regions", "required_formats", "page_limit"})
         for key in ("company", "title"):
             string(data[key], 200)
         string(data["description"], 20000)
@@ -287,6 +287,9 @@ class Workspace:
         for value in data.get("required_formats", []):
             require(value in ("pdf", "docx", "txt", "html"), "invalid_schema",
                     "required_formats uses pdf, docx, txt or html.")
+        if "page_limit" in data:
+            require(type(data["page_limit"]) is int and 1 <= data["page_limit"] <= 3, "invalid_schema",
+                    "page_limit is the document page policy: 1, 2 or 3.")
         # Only fields the listing states are stored: an absent field stays unknown, never empty-as-known.
         normalized = dict(data, credibility="unassessed", availability="unverified",
                           recommendation="review")
