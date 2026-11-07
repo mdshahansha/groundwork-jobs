@@ -90,6 +90,12 @@ authorised hash, the action ID rides in the `X-JW-Action-Id` header only (the ad
 unknowns from the Sent folder by recipient and subject, matching the header. Bounces and replies come
 in through `mail-sync`. Needs a `gmail.send` token to send and `gmail.readonly` to reconcile.
 
+Gmail auth: when `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET` and `JW_GMAIL_REFRESH_TOKEN` are set,
+the HTTP transport mints its own 1-hour access tokens and renews once on a 401, so no pasted token
+is needed. `tools/gmail_oauth_setup.py --env <file>` gets the refresh token once (Desktop OAuth
+client, loopback redirect, PKCE, state check) and writes it to the env file with mode 600. Publish
+the consent screen "In production"; in "Testing" Google expires refresh tokens after 7 days.
+
 Tested on the demo transport: a batch sends once and a repeat sends nothing; a lost response is
 never resent and reconciles from Sent; a changed resume is refused before any provider call; a
 blocked draft cannot be approved.

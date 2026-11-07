@@ -244,11 +244,12 @@ class HttpGmail:
 
     BASE = "https://gmail.googleapis.com/gmail/v1/users/me/"
 
-    def __init__(self, access_token, scopes, timeout=30):
+    def __init__(self, access_token, scopes, timeout=30, refresh=None):
         string(access_token, 4096)
         self.token = access_token
         self.scopes = set(scopes)
         self.timeout = timeout
+        self.refresh = refresh
 
     def _req(self, method, path, query=None, body=None):
         url = self.BASE + path + ("?" + urllib.parse.urlencode(query, doseq=True) if query else "")
@@ -264,6 +265,14 @@ class HttpGmail:
                 raise GmailError("history_expired", detail) from None
             if exc.code == 429 or (exc.code == 403 and "rateLimit" in detail):
                 raise GmailError("quota", detail, retry_after=exc.headers.get("Retry-After")) from None
+            if exc.code == 401 and self.refresh and not getattr(self, "_retried", False):
+                # Expired access token: renew once from the refresh token and repeat the call.
+                self.token = access_token(**self.refresh)
+                self._retried = True
+                try:
+                    return self._req(method, path, query, body)
+                finally:
+                    self._retried = False
             if exc.code == 401:
                 raise GmailError("auth", detail) from None
             if exc.code >= 500 or exc.code == 408:
@@ -462,6 +471,26 @@ class GmailAdapter:
         return self.mail.reconcile_sent(token, action_id, hits)
 
 
+TOKEN_URL = "https://oauth2.googleapis.com/token"
+
+
+def access_token(client_id, client_secret, refresh_token, timeout=30):
+    """A fresh 1-hour access token from a long-lived refresh token (Google OAuth, installed app)."""
+    data = urllib.parse.urlencode({"client_id": client_id, "client_secret": client_secret,
+                                   "refresh_token": refresh_token, "grant_type": "refresh_token"}).encode()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(TOKEN_URL, data=data, method="POST"),
+                                    timeout=timeout) as response:
+            token = json.loads(response.read()).get("access_token")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read()[:500].decode("utf-8", "replace")
+        raise GmailError("auth", "Refresh token rejected; rerun tools/gmail_oauth_setup.py. " + detail) from None
+    except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        raise GmailError("transient", str(exc)) from None
+    require(bool(token), "not_configured", "Google returned no access token.")
+    return token
+
+
 def transport(spec):
     """CLI transport from {'transport': 'replay', 'path': ...} or {'transport': 'http', 'token_env': ...}."""
     import os
@@ -470,8 +499,13 @@ def transport(spec):
     if kind == "replay":
         return ReplayGmail(spec["path"])
     if kind == "http":
+        scopes = spec.get("scopes", ["gmail.readonly"])
+        refresh = {k: os.environ.get("JW_GMAIL_" + k.upper()) for k in ("client_id", "client_secret", "refresh_token")}
+        if all(refresh.values()):
+            # A long-lived refresh token beats a pasted 1-hour token: the access token renews itself.
+            return HttpGmail(access_token(**refresh), scopes, refresh=refresh)
         name = spec.get("token_env", "GMAIL_ACCESS_TOKEN")
         value = os.environ.get(name)
         require(bool(value), "not_configured", name + " is not set; no Gmail call was made.")
-        return HttpGmail(value, spec.get("scopes", ["gmail.readonly"]))
+        return HttpGmail(value, scopes)
     raise WorkspaceError("invalid_schema", "transport is replay or http.")
