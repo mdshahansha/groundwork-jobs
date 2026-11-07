@@ -35,12 +35,17 @@ ACTION_ID = re.compile(r"X-JW-Action-Id:\s*(act_[A-Za-z0-9_-]{1,80})", re.I)
 RULES = (
     ("bounce", r"delivery status notification|undeliverable|delivery has failed|address not found|mail delivery failed"),
     ("auto_reply", r"out of (?:the )?office|automatic reply|auto-?reply|away from my desk"),
-    ("opt_out", r"unsubscribe|remove me|do not contact|stop (?:e-?mailing|contacting)"),
+    # A footer "unsubscribe" link is in nearly every recruiter mail: only a person asking counts.
+    ("opt_out", r"(?:please )?unsubscribe me|remove me|do not contact|don't contact|stop (?:e-?mailing|contacting)"),
     ("offer", r"pleased to offer|offer letter|extend an offer"),
     ("rejection", r"unfortunately|not (?:be )?moving forward|other candidates|regret to inform|decided not to proceed"),
     ("assessment", r"assessment|coding challenge|take-home|online test"),
-    ("interview_invite", r"\binterview\b|schedule a (?:call|chat)|availability for a call"),
-    ("acknowledgement", r"received your application|thank you for applying|thanks for applying|application received"),
+    # The bare word "interview" is in newsletters and prep courses; an invite asks to meet.
+    ("interview_invite", r"invite you (?:to|for) (?:an? )?(?:interview|call|chat)|interview (?:invitation|invite)|"
+                         r"schedule (?:an?|your) interview|schedule a (?:call|chat)|availability for (?:a|an) "
+                         r"(?:call|interview)|like to interview you"),
+    ("acknowledgement", r"received your application|thank you for applying|thanks for applying|application received|"
+                        r"application was sent|submit(?:ting)? your application|thank you for your interest"),
 )
 BOUNCE_SENDERS = ("mailer-daemon@", "postmaster@")
 MESSAGE_FIELDS = {"message_id", "thread_id", "history_id", "from", "subject", "body", "received_at"}

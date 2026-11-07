@@ -65,3 +65,35 @@ its explicit deferral; implement durable Gmail history/recovery adapters and
 prove their failure contracts; qualify live provider behavior only when enabled
 and authorized. The skipped live send is not a passing test. JW-03 has not been
 advanced as a completed ticket. Full document quality gates remain JW-09 work.
+
+## Live Gmail read-only probe (2026-11-07)
+
+Owner-approved, read-only, through the connected Gmail account. Nothing was sent, drafted or
+labelled. Raw messages and the full report stay in `testing/` (gitignored); this section holds
+counts and outcomes only, no names or addresses.
+
+| Item | Result |
+| --- | --- |
+| Inbox job threads read (last 60 days, query on application/interview terms) | 8 sampled of ~201 matching |
+| Sent threads read | 2 |
+| Messages through `MailSync.sync` in a throwaway workspace | 7 (one was the candidate's own sent mail) |
+| Re-sync of the same messages | all duplicates; checkpoint unchanged (idempotent) |
+| Attached to a job by company + role | 2 of 2 jobs seeded from real applications |
+| Sent to review (no confident job) | 5, including a portal notice that named the company but not the role |
+
+Classifier defects found on real mail and fixed in the same change, with regression tests in
+`tests/test_jw_mail_classify.py`:
+
+1. **Opt-out on footers.** The rule matched the bare word "unsubscribe", which appears in most
+   recruiter and newsletter footers. A matched recruiter acknowledgement could have suppressed
+   that recruiter. Only a person's request (remove me, unsubscribe me, do not contact, stop
+   e-mailing) now counts.
+2. **Newsletter as interview invite.** `\binterview\b` classified a prep-course newsletter as an
+   invite. An invite now needs invitation phrasing (invite you to an interview, availability for a
+   call, schedule a call, would like to interview you).
+3. **Missed acknowledgements.** "Thank you for your interest ... submit your application" and
+   "your application was sent to ..." were `other`; they are now acknowledgements.
+
+Still open for JW-02: no Gmail adapter calls the Gmail API from `jw` itself (the probe used the
+host's connector), so durable history-ID sync, label handling and quota behaviour are untested;
+live sending stays skipped by owner decision; Distilly host inference is not run.
