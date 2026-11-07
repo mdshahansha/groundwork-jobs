@@ -69,11 +69,13 @@ def active_time(ws, job_id, idle_seconds=IDLE_SECONDS):
     if len(times) < 2:
         return {"job_id": job_id, "elapsed_seconds": None, "active_seconds": None, "idle_gaps": 0,
                 "status": "unknown", "reason": "Fewer than two activity events."}
-    gaps = [(b - a).total_seconds() for a, b in zip(times, times[1:])]
-    idle = [g for g in gaps if g > idle_seconds]
-    return {"job_id": job_id, "elapsed_seconds": (times[-1] - times[0]).total_seconds(),
-            "active_seconds": sum(g for g in gaps if g <= idle_seconds), "idle_gaps": len(idle),
-            "idle_seconds_excluded": sum(idle), "idle_threshold_seconds": idle_seconds, "status": "measured"}
+    # Whole microseconds, so active never exceeds elapsed through float rounding.
+    gaps = [(b - a) // timedelta(microseconds=1) for a, b in zip(times, times[1:])]
+    limit = idle_seconds * 1_000_000
+    idle = [g for g in gaps if g > limit]
+    return {"job_id": job_id, "elapsed_seconds": sum(gaps) / 1e6,
+            "active_seconds": sum(g for g in gaps if g <= limit) / 1e6, "idle_gaps": len(idle),
+            "idle_seconds_excluded": sum(idle) / 1e6, "idle_threshold_seconds": idle_seconds, "status": "measured"}
 
 
 def cohorts(ws):

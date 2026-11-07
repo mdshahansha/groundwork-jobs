@@ -31,6 +31,26 @@ def map_profile(markdown, evidence):
             "ready": False, "instructions_executed": False}
 
 
+SUMMARY = "## Always-on summary"
+SUMMARY_LIMIT = 3000
+
+
+def check_host_profile(markdown):
+    """Structural contract for a host-generated Distilly owner profile (prompts/owner/profile_builder.md
+    at the pin). Content stays untrusted: only `map_profile` turns lines into claims."""
+    string(markdown, 64000)
+    lines = markdown.splitlines()
+    require(SUMMARY in lines, "distilly_contract", "Profile lacks the exact always-on summary heading.")
+    start = lines.index(SUMMARY) + 1
+    end = next((i for i in range(start, len(lines)) if lines[i].startswith("## ")), len(lines))
+    summary = "\n".join(lines[start:end]).strip()
+    require(0 < len(summary) <= SUMMARY_LIMIT, "distilly_contract", "Summary is empty or over 3000 characters.")
+    require("## Sources" in lines, "distilly_contract", "Profile lacks the Sources table.")
+    require(not any(line.lower().lstrip("-* ").startswith("you are ") for line in lines), "distilly_contract",
+            "Profile is written as a role-play persona.")
+    return {"summary_chars": len(summary), "inferred_lines": sum("(inferred)" in line for line in lines)}
+
+
 def source_result(result):
     """Legacy fetch_post(None) is unavailable, never successful empty discovery."""
     if not isinstance(result, dict) or not result:
