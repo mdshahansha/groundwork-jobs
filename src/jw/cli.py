@@ -57,6 +57,7 @@ COMMANDS = {
     "history-export": ({"import_id", "output_path"}, set()),
     "schedule-set": ({"policy"}, set()),
     "schedule-next": ({"channel"}, set()),
+    "suppress": ({"address", "reason"}, {"company"}),
     "pause": (set(), set()),
     "resume": ({"holder"}, {"seconds"}),
     "checkpoint": (set(), set()),
@@ -185,6 +186,9 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command == "suppress":
+        from .suppression import suppress
+        return suppress(ws, data["address"], data["reason"], data.get("company"))
     if command in ("pause", "resume", "checkpoint"):
         from .actions import Actions
         from .execution import Executor

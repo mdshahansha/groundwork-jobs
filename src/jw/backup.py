@@ -54,8 +54,12 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def _apply(ws, entries):
-    """Erase every still-active source the journal says was deleted. Returns the erased IDs."""
+def _apply(ws, entries, suppressions=()):
+    """Erase every still-active source the journal says was deleted, and re-insert every journaled
+    suppression. Returns the erased source IDs."""
+    from .suppression import apply_journal
+
+    apply_journal(ws, suppressions)
     purged = []
     for row in ws.db.execute("SELECT id, sha256 FROM sources WHERE state='active'").fetchall():
         if row["sha256"] in entries:
@@ -82,9 +86,9 @@ def _close_flat(ws):
     return path
 
 
-def _write_manifest(path, schema, created_at, purged_through):
+def _write_manifest(path, schema, created_at, purged_through, suppressions=0):
     manifest = {"schema_version": schema, "sha256": _sha(path), "created_at": created_at,
-                "journal_entries": purged_through, "contains": ["database"], "secrets": "none"}
+                "journal_entries": purged_through, "suppression_entries": suppressions, "contains": ["database"], "secrets": "none"}
     Path(str(path) + ".json").write_text(json.dumps(manifest, sort_keys=True), encoding="utf-8")
     return manifest
 
@@ -111,9 +115,14 @@ def backup(ws, to=None):
         ws.db.backup(target)
     finally:
         target.close()
-    _write_manifest(path, SCHEMA_VERSION, created, len(journal(ws.store.root)))
+    from .suppression import journal as suppression_journal
+
+    _write_manifest(path, SCHEMA_VERSION, created, len(journal(ws.store.root)),
+                    len(suppression_journal(ws.store.root)))
     ws.store.audit("backup_created", path.name)
-    rotated = rotate(dest, journal(ws.store.root))
+    from .suppression import journal as suppression_journal
+
+    rotated = rotate(dest, journal(ws.store.root), suppression_journal(ws.store.root))
     return {"backup": str(path), "kept": rotated["kept"], "removed": rotated["removed"],
             "purged": rotated["purged"]}
 
@@ -122,7 +131,7 @@ def _stamp(path):
     return datetime.strptime(path.name[len("backup-"):-len(".sqlite3")], "%Y%m%dT%H%M%S%f")
 
 
-def rotate(dest, entries):
+def rotate(dest, entries, suppressions=()):
     backups = sorted(Path(dest).glob("backup-*.sqlite3"), key=_stamp, reverse=True)
     keep, days, weeks = set(), [], []
     for path in backups:
@@ -143,14 +152,15 @@ def rotate(dest, entries):
     purged = {}
     for path in sorted(keep, key=_stamp):
         manifest = _manifest(path)
-        if manifest.get("journal_entries") == len(entries):
+        if (manifest.get("journal_entries") == len(entries) and
+                manifest.get("suppression_entries", 0) == len(suppressions)):
             continue
         with tempfile.TemporaryDirectory(dir=dest) as scratch:
             ws = _open_copy(path, scratch)
-            erased = _apply(ws, entries)
+            erased = _apply(ws, entries, suppressions)
             flat = _close_flat(ws)
             os.replace(flat, path)
-        _write_manifest(path, SCHEMA_VERSION, manifest["created_at"], len(entries))
+        _write_manifest(path, SCHEMA_VERSION, manifest["created_at"], len(entries), len(suppressions))
         if erased:
             purged[path.name] = erased
     return {"kept": sorted(p.name for p in keep), "removed": removed, "purged": purged}
@@ -171,11 +181,13 @@ def restore(root, backup_path):
         sync_journal(live)
     finally:
         live.close()
-    entries = journal(root)
+    from .suppression import journal as suppression_journal
+
+    entries, suppressions = journal(root), suppression_journal(root)
     with tempfile.TemporaryDirectory(dir=root) as scratch:
         ws = _open_copy(backup_path, scratch)
         try:
-            purged = _apply(ws, entries)
+            purged = _apply(ws, entries, suppressions)
             with ws.store.transaction():
                 unknown = [r["id"] for r in ws.db.execute("SELECT id FROM attempts WHERE state='in_flight'")]
                 now = utcnow()

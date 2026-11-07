@@ -133,7 +133,14 @@ HISTORY_SCHEMA = (
     "identity TEXT, reason TEXT, UNIQUE(import_id, line))",
     "CREATE INDEX history_identity ON history_rows(identity) WHERE status='imported'",
 )
-SCHEMA_VERSION = 11
+# JW-13: permanent suppression list (hashes only); company '' means every company.
+SUPPRESSION_SCHEMA = (
+    "CREATE TABLE suppressions (address_sha256 TEXT NOT NULL, company TEXT NOT NULL, reason TEXT NOT NULL, "
+    "at TEXT NOT NULL, PRIMARY KEY(address_sha256, company))",
+    "CREATE TRIGGER suppressions_permanent BEFORE DELETE ON suppressions "
+    "BEGIN SELECT RAISE(ABORT, 'suppressions are permanent'); END",
+)
+SCHEMA_VERSION = 12
 
 
 class Store:
@@ -241,6 +248,14 @@ class Store:
                     for statement in HISTORY_SCHEMA:
                         self.db.execute(statement)
                     self.db.execute("PRAGMA user_version=11")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 11:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 11:
+                    for statement in SUPPRESSION_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=12")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")

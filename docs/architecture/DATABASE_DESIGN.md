@@ -34,6 +34,7 @@ artifact-file writes. WAL plus synchronous FULL is enabled; timeout is 10 second
 Logical deletion clears raw/extracted/claim/task content and writes deletion
 markers in the same transaction. `secure_delete` and a truncating WAL checkpoint
 reduce residual local pages; they do not guarantee erasure from SSDs, snapshots,
-concurrent reader WALs, OS backups or external exports. No retention period or
-restore-time erasure promise is implemented. These are outstanding JW-04/JW-13
-acceptance items, not successes inferred from a tombstone table.
+concurrent reader WALs, OS backups or external exports. Backups keep 7 daily and
+4 weekly snapshots; each rotation and every restore re-apply the deletion and
+suppression journals kept beside the database (JW-04/JW-13). Physical-media
+erasure is still not guaranteed.

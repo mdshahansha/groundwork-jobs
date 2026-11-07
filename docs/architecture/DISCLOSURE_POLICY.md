@@ -85,7 +85,8 @@ Old binaries reject schema 2 rather than silently apply weaker policy. To roll
 back a faulty release, stop the application, retain the schema-2 database intact,
 and deploy a compatible corrective build. Do not drop rules or reset the schema
 version. Restoring an older backup loses later privacy decisions and is not a
-supported rollback. Restore-time erasure remains JW-04/JW-13 work. No destructive
+supported rollback. Restore re-applies the deletion and suppression journals
+(JW-04/JW-13), but disclosure rules are not journaled. No destructive
 contraction occurs in this migration.
 
 ## Acceptance evidence

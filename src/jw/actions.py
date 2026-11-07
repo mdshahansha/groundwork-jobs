@@ -96,6 +96,12 @@ class Actions:
                     "This channel is draft only; approvals are refused.")
             require(envelope["profile_version"] == self.profile_version(), "auth_hash_mismatch",
                     "The profile changed since this envelope was made; create a new one.")
+            if envelope["channel"] == "email":
+                from .suppression import suppressed
+                job = self.db.execute("SELECT data FROM jobs WHERE id=?", (envelope["job_id"],)).fetchone()
+                company = json.loads(job["data"]).get("company") if job else None
+                require(not suppressed(self.ws, envelope["destination"], company), "suppressed",
+                        "This address is on the suppression list; approval is refused.")
             # Campaigns are not implemented: a campaign channel falls back to per-action approval (FR-AUT-02).
             auth_id = identifier("aut")
             now = utcnow()

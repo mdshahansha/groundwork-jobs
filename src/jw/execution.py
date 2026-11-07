@@ -9,6 +9,7 @@ that finds nothing is not proof of failure, so `not_found` leaves the attempt un
 """
 
 from datetime import timedelta
+import json
 
 from .contracts import instant, require, string, utcnow
 from .workspace import identifier
@@ -92,8 +93,12 @@ class Executor:
                 failure = ("unresolved_unknown", "Reconcile the uncertain " + channel + " action before any other.")
             else:
                 from .schedule import Schedule
+                from .suppression import suppressed
                 waiting = Schedule(self.actions.ws).check(channel)
-                if waiting:
+                company = self._company(auth_id)
+                if channel == "email" and suppressed(self.actions.ws, destination, company):
+                    failure = ("suppressed", "This address is on the suppression list; nothing is sent.")
+                elif waiting:
                     failure = (waiting[0], waiting[1] + " Next allowed: " + waiting[2])
                 else:
                     failure = self.actions.check_and_use(auth_id, channel, destination, content, attachments)
@@ -107,6 +112,11 @@ class Executor:
             require(False, *failure)
         return {"action_id": action_id, "state": LABELS[channel]["in_flight"],
                 "headers": {"X-JW-Action-Id": action_id}, "provider_call": "not_performed"}
+
+    def _company(self, auth_id):
+        row = self.db.execute("SELECT j.data FROM authorisations z JOIN action_envelopes e ON e.id=z.envelope_id "
+                              "JOIN jobs j ON j.id=e.job_id WHERE z.id=?", (auth_id,)).fetchone()
+        return json.loads(row["data"]).get("company") if row else None
 
     def _resolve(self, token, action_id, expected, state, provider_ref, evidence):
         with self.store.transaction():

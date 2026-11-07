@@ -30,5 +30,7 @@ removes packets and results. Input changes deny access with `stale_input` or
 
 Correction lineage participates in source deletion. Logical erasure atomically
 clears all descendant source/claim content and all dependent task packets/results.
-External copies are outside this transaction and cannot be recalled. Backup
-restore is disabled pending an independent durable erasure/recovery boundary.
+External copies are outside this transaction and cannot be recalled. Deletions
+and suppressions are also journaled outside the database (`deletion-journal.jsonl`,
+`suppression-journal.jsonl`); backup rotation and restore re-apply both, so a
+restored backup cannot resurrect a deleted source or unblock a suppressed address.
