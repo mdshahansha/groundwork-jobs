@@ -91,7 +91,12 @@ class Executor:
             if self.db.execute("SELECT 1 FROM attempts WHERE channel=? AND state='unknown'", (channel,)).fetchone():
                 failure = ("unresolved_unknown", "Reconcile the uncertain " + channel + " action before any other.")
             else:
-                failure = self.actions.check_and_use(auth_id, channel, destination, content, attachments)
+                from .schedule import Schedule
+                waiting = Schedule(self.actions.ws).check(channel)
+                if waiting:
+                    failure = (waiting[0], waiting[1] + " Next allowed: " + waiting[2])
+                else:
+                    failure = self.actions.check_and_use(auth_id, channel, destination, content, attachments)
             if failure is None:
                 action_id = identifier("act")
                 now = utcnow()

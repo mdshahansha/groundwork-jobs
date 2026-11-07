@@ -55,6 +55,8 @@ COMMANDS = {
     "history-import": ({"path", "mapping"}, set()),
     "history-show": ({"import_id"}, set()),
     "history-export": ({"import_id", "output_path"}, set()),
+    "schedule-set": ({"policy"}, set()),
+    "schedule-next": ({"channel"}, set()),
     "pause": (set(), set()),
     "resume": ({"holder"}, {"seconds"}),
     "checkpoint": (set(), set()),
@@ -174,6 +176,15 @@ def dispatch(ws, command, data):
         with Path(data["output_path"]).open("xb") as stream:
             stream.write(body)
         return {"output_path": data["output_path"], "bytes": len(body)}
+    if command.startswith("schedule-"):
+        from .schedule import Schedule
+        schedule = Schedule(ws)
+        if command == "schedule-set":
+            return schedule.set_policy(data["policy"])
+        string(data["channel"], 20)
+        waiting = schedule.check(data["channel"])
+        return {"channel": data["channel"], "now": waiting is None,
+                "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
     if command in ("pause", "resume", "checkpoint"):
         from .actions import Actions
         from .execution import Executor
