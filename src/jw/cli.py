@@ -33,6 +33,8 @@ COMMANDS = {
     "rankings": (set(), {"include_outdated"}),
     "task-create": ({"job_id", "kind", "consent"}, {"draft_id", "prepare_anyway"}),
     "post-ingest": ({"post"}, set()),
+    "lead-import": ({"source", "path"}, set()),
+    "lead-fetch": ({"source"}, {"token_env", "days", "limit"}),
     "merge-decide": ({"merge_id", "accept"}, set()),
     "merge-undo": ({"merge_id"}, set()),
     "opportunities": (set(), {"cursor", "limit"}),
@@ -214,6 +216,19 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command in ("lead-import", "lead-fetch"):
+        from . import leads
+        if command == "lead-import":
+            items = parse_json(Path(data["path"]).read_text(encoding="utf-8"), limit=64 * 1024 * 1024)
+            return leads.import_leads(ws, data["source"], items)
+        if data["source"] == "naukri_mail":
+            from .gmail import transport
+            gmail = transport({"transport": "http", "token_env": data.get("token_env", "JW_GMAIL_TOKEN"),
+                               "scopes": ["gmail.readonly"]})
+            items = leads.fetch_naukri_invites(gmail, data.get("days", 7), data.get("limit", 100))
+        else:
+            items = leads.fetch_feed(data["source"])
+        return leads.import_leads(ws, data["source"], items)
     if command in ("post-ingest", "merge-decide", "merge-undo", "opportunities"):
         from .opportunities import Opportunities
         opps = Opportunities(ws)

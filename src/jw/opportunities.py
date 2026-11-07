@@ -20,7 +20,9 @@ TRACKING = re.compile(r"^(utm_.*|gclid|fbclid|trk|trackingid|refid|ref|src|sourc
 AUTO_THRESHOLD = {4: 0.95, 5: 0.95, 6: None}
 PROPOSE_TEXT = 0.6
 POST_FIELDS = {"provider", "company", "title", "location", "text"}
-OPTIONAL = {"external_id", "url", "requisition", "recruiter", "job_id"}
+OPTIONAL = {"external_id", "url", "requisition", "recruiter", "job_id",
+            # lead intake (leads.py): kept in the post data for the phase-2 filters
+            "posted_at", "min_years", "max_years", "contact_email", "skills"}
 
 
 def key(text):
