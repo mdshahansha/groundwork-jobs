@@ -140,7 +140,14 @@ SUPPRESSION_SCHEMA = (
     "CREATE TRIGGER suppressions_permanent BEFORE DELETE ON suppressions "
     "BEGIN SELECT RAISE(ABORT, 'suppressions are permanent'); END",
 )
-SCHEMA_VERSION = 12
+# JW-15: follow-ups scheduled from an accepted e-mail; one row per follow-up, one-way states.
+FOLLOWUP_SCHEMA = (
+    "CREATE TABLE followups (id TEXT PRIMARY KEY, attempt_id TEXT NOT NULL REFERENCES attempts(id), "
+    "job_id TEXT REFERENCES jobs(id), destination TEXT NOT NULL, seq INTEGER NOT NULL, due_at TEXT NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('scheduled','reserved','cancelled')), reason TEXT, "
+    "action_id TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(attempt_id, seq))",
+)
+SCHEMA_VERSION = 13
 
 
 class Store:
@@ -258,6 +265,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=12")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 12:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 12:
+                    for statement in FOLLOWUP_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=13")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -278,7 +293,7 @@ class Store:
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
         require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions",
-                           "action_envelopes", "authorisations", "attempts", "history_imports"}, "invalid_schema", "Unknown entity.")
+                           "action_envelopes", "authorisations", "attempts", "history_imports", "followups"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")

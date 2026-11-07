@@ -83,7 +83,7 @@ class Executor:
             self.store.audit("lease_released", str(token))
         return {"released": token}
 
-    def reserve(self, token, auth_id, channel, destination, content, attachments=()):
+    def reserve(self, token, auth_id, channel, destination, content, attachments=(), guard=None):
         """Record the attempt before the provider call; the returned action ID goes in the message header."""
         failure = None
         with self.store.transaction():
@@ -98,6 +98,8 @@ class Executor:
                 company = self._company(auth_id)
                 if channel == "email" and suppressed(self.actions.ws, destination, company):
                     failure = ("suppressed", "This address is on the suppression list; nothing is sent.")
+                elif guard is not None and (blocked := guard()) is not None:
+                    failure = blocked
                 elif waiting:
                     failure = (waiting[0], waiting[1] + " Next allowed: " + waiting[2])
                 else:
@@ -108,6 +110,8 @@ class Executor:
                 self.db.execute("INSERT INTO attempts VALUES (?,?,?,?,?,'in_flight',NULL,NULL,?,?)",
                                 (action_id, auth_id, channel, destination, token, now, now))
                 self.store.audit("attempt_in_flight", action_id)
+                if guard is not None and hasattr(guard, "commit"):
+                    guard.commit(action_id)
         if failure:
             require(False, *failure)
         return {"action_id": action_id, "state": LABELS[channel]["in_flight"],
