@@ -183,7 +183,9 @@ SCHEMA_VERSION = 16
 class Store:
     def __init__(self, root, create=False):
         self.root = Path(root).resolve()
-        require(not ((CODE_CHECKOUT / ".git").exists() and self.root.is_relative_to(CODE_CHECKOUT)),
+        # Resolve both sides: a checkout reached through a symlink (macOS /var -> /private/var) must still match.
+        checkout = Path(CODE_CHECKOUT).resolve()
+        require(not ((checkout / ".git").exists() and self.root.is_relative_to(checkout)),
                 "unsafe_workspace", "Store candidate data outside the application source checkout.")
         database = self.root / "workspace.sqlite3"
         require(create or database.is_file(), "not_initialized", "Run init first.")
