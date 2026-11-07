@@ -172,6 +172,8 @@ def main(argv=None):
                                                 {"init", "status", "source-import", "profile-publish", "policy-show"}))
     parser.add_argument("--input", help="UTF-8 JSON request file; raw UTF-8 text for source-import")
     parser.add_argument("--sensitivity", choices=["public", "private", "restricted"], default="private")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Run on a throwaway copy and report the effects; the workspace is unchanged")
     parser.add_argument("--provenance", choices=["document", "candidate_confirmation"], default="document")
     args = parser.parse_args(argv)
     ws = None
@@ -181,6 +183,24 @@ def main(argv=None):
         needs_input = args.command in COMMANDS or args.command == "source-import"
         require(bool(args.input) == needs_input, "invalid_arguments", "Provide --input only for commands requiring payloads.")
         raw = read_bounded(args.input) if needs_input else None
+        if args.dry_run:
+            from .simulation import run
+            require(args.command not in ("init",), "invalid_arguments", "init has nothing to simulate.")
+            if args.command == "restore":
+                from .backup import _manifest
+                data = parse_json(raw)
+                fields(data, *COMMANDS["restore"])
+                string(data["backup"], 4096)
+                manifest = _manifest(data["backup"])
+                result = {"simulated": True, "result": {"valid": True, "schema_version": manifest["schema_version"]},
+                          "effects": {"rows": {}, "audit": [], "files": [], "external_actions": []}}
+            elif args.command == "source-import":
+                result = run(args.workspace, args.command, {"raw": raw}, lambda w, c, d: w.import_source(
+                    d["raw"], provenance=args.provenance, sensitivity=args.sensitivity))
+            else:
+                result = run(args.workspace, args.command, parse_json(raw) if raw is not None else {}, dispatch)
+            print(canonical({"ok": True, "result": result}))
+            return 0
         if args.command == "restore":
             # The live database is replaced, so no connection may stay open.
             from .backup import restore

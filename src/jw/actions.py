@@ -147,6 +147,28 @@ class Actions:
         return {"authorisation_id": auth_id, "state": "used", "provider_call": "not_performed",
                 "detail": "No provider exists; the executor would call it now."}
 
+    def simulate(self, auth_id, channel, destination, content, attachments=()):
+        """What an executor would send under this authorisation. Read-only: the authorisation is
+        not consumed, no attempt is recorded, and every refusal is reported instead of raised."""
+        auth = self.store.one("authorisations", auth_id)
+        problems = []
+        if self.stopped():
+            problems.append("stopped")
+        if auth["state"] != "active":
+            problems.append("auth_" + auth["state"])
+        elif instant(utcnow()) >= instant(auth["expires_at"]):
+            problems.append("auth_expired")
+        if self.mode(auth["channel"]) == "draft_only":
+            problems.append("channel_draft_only")
+        channel = self._channel(channel)
+        hashed, hashes = content_hash(channel, content), attachment_hashes(list(attachments))
+        if (channel != auth["channel"] or destination != auth["destination"] or hashed != auth["content_hash"] or
+                hashes != json.loads(auth["attachment_hashes"]) or self.profile_version() != auth["profile_version"]):
+            problems.append("auth_hash_mismatch")
+        return {"simulated": True, "would_send": not problems, "refusals": problems, "channel": channel,
+                "action_type": CHANNELS[channel], "destination": destination, "content_hash": hashed,
+                "attachment_hashes": hashes, "authorisation_state": auth["state"], "provider_call": "not_performed"}
+
     def check_and_use(self, auth_id, channel, destination, content, attachments=()):
         """Run inside the caller's transaction. Returns (code, message) on refusal, else None."""
         auth = self.store.one("authorisations", auth_id)
