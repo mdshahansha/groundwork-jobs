@@ -60,10 +60,9 @@ workspace deletion. Unsupported glyphs and overflow still block rendering.
 
 ## Remaining closure work
 
-JW-02 remains partial: qualify the actual Distilly host inference path or approve
-its explicit deferral; implement durable Gmail history/recovery adapters and
-prove their failure contracts; qualify live provider behavior only when enabled
-and authorized. The skipped live send is not a passing test. JW-03 has not been
+Closed 2026-11-07. Distilly host inference and the pinned writer save are qualified; the durable
+Gmail adapter proves its failure contracts; live read-only sync and one owner-approved live send
+are qualified (sections below). Live send stays disabled in the CLI by policy. JW-03 has not been
 advanced as a completed ticket. Full document quality gates remain JW-09 work.
 
 ## Live Gmail read-only probe (2026-11-07)
