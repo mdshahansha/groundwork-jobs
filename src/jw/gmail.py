@@ -196,6 +196,7 @@ class DemoGmail:
         if self.send_fault == "rejected":
             raise GmailError("rejected", "invalid To header")
         mime = _unb64(raw).decode("utf-8")
+        self.sent_raw = getattr(self, "sent_raw", []) + [mime]
         head, _, body = mime.partition("\n\n")
         headers = dict(line.split(": ", 1) for line in head.splitlines() if ": " in line)
         self.history_id += 1
@@ -209,7 +210,7 @@ class DemoGmail:
             raise GmailError("transient", "read timed out")
         return {"id": mid, "threadId": "thr" + mid, "labelIds": ["SENT"]}
 
-    def search_sent(self, text):
+    def search_sent(self, text, query=None):
         self._call("search")
         hits = []
         for m in self.messages.values():
@@ -301,9 +302,9 @@ class HttpGmail:
     def send(self, raw):
         return self._req("POST", "messages/send", body={"raw": raw})
 
-    def search_sent(self, text):
+    def search_sent(self, text, query=None):
         hits = []
-        for ref in self.list('in:sent "%s"' % text).get("messages", []):
+        for ref in self.list(query or 'in:sent "%s"' % text).get("messages", []):
             m = self.get(ref["id"])
             hits.append({"message_id": m["id"], "thread_id": m["threadId"],
                          "headers": {h["name"]: h["value"] for h in m["payload"].get("headers", [])}})
@@ -418,16 +419,26 @@ class GmailAdapter:
             require(token not in seen, "history_loop", "Repeated pagination token.")
             seen.add(token)
 
-    def send(self, token, auth_id, destination, content, guard=None):
-        """Reserve, send once, record. Never resends: a lost response becomes unknown."""
+    def send(self, token, auth_id, destination, content, guard=None, attachments=(), mark_body=True):
+        """Reserve, send once, record. Never resends: a lost response becomes unknown.
+
+        `attachments` is [(filename, bytes, mime type)], checked against the authorised hashes.
+        `mark_body=False` keeps the action ID out of the visible text (recruiter-facing mail); it stays
+        in the X-JW-Action-Id header, which `reconcile` matches."""
         gmail_permission("send", self.t.scopes, self.allowed)
-        reserved = self.ex.reserve(token, auth_id, "email", destination, content, guard=guard)
+        files = [(name, data, mime) for name, data, mime in attachments]
+        reserved = self.ex.reserve(token, auth_id, "email", destination, content,
+                                   attachments=[data for _, data, _ in files], guard=guard)
         action_id = reserved["action_id"]
         message = EmailMessage()
         message["To"] = destination
         message["Subject"] = content["subject"]
         message["X-JW-Action-Id"] = action_id
-        message.set_content(content["body"] + "\n\n--\nX-JW-Action-Id: " + action_id + "\n")
+        footer = "\n\n--\nX-JW-Action-Id: " + action_id + "\n" if mark_body else "\n"
+        message.set_content(content["body"] + footer)
+        for name, data, mime in files:
+            main, _, sub = mime.partition("/")
+            message.add_attachment(data, maintype=main, subtype=sub, filename=name)
         raw = _b64(message.as_bytes(policy=message.policy.clone(linesep="\n")))
         try:
             self._spend("send")
@@ -440,10 +451,11 @@ class GmailAdapter:
             return self.ex.record(token, action_id, "unknown")
         return self.ex.record(token, action_id, "accepted", provider_ref=sent["threadId"])
 
-    def reconcile(self, token, action_id):
+    def reconcile(self, token, action_id, query=None):
+        """`query` narrows the Sent search (e.g. recipient and subject) when the ID is header-only."""
         string(action_id, 100)
         try:
-            hits = self._do("search", action_id)
+            hits = self._do("search", action_id, query) if query else self._do("search", action_id)
         except (GmailError, _Paused):
             return {"action_id": action_id, "state": "send_unknown",
                     "detail": "Sent-folder search failed; the action stays unknown and is not resent."}

@@ -9,7 +9,7 @@ source posts and layered deduplication (JW-21), the Gmail adapter (JW-02), appro
 | 1. Intake | `src/jw/leads.py`; `lead-import`, `lead-fetch` | Done |
 | 2. Filters and fit | `src/jw/lead_filter.py`; `lead-filter` | Done |
 | 3. Drafting | `src/jw/lead_drafts.py`; `lead-draft-packet`, `lead-draft-submit`, `lead-drafts` (schema 17) | Done |
-| 4. Send queue | batch approval, `jw` send with action IDs, bounce and reply handling through `mail-sync` | Planned |
+| 4. Send queue | `src/jw/lead_queue.py`; `lead-approve`, `lead-send`, `lead-reconcile` | Done |
 | 5. Dashboard | pipeline counts, daily runs, errors | Planned |
 | 6. Daily run | scheduled intake, filter and drafting; waits for batch approval | Planned |
 
@@ -77,6 +77,22 @@ unrelated stacks); all fixed with regression tests. Of the 4 leads left, 2 draft
 (Aquainsys, Infosys with a date-of-birth flag). The checker blocked "Django" in two drafts because
 the candidate profile does not support it; one draft was reworded, the Django-first lead dropped,
 and an ML/sensor-data lead was skipped as unsupported.
+
+## Phase 4: send queue
+
+`lead-approve` is the candidate's batch decision: each `ready` draft becomes a frozen e-mail envelope
+(subject, body, resume hash) with an authorisation lasting `hours` (default 24); drafts that are not
+ready, already approved or suppressed are skipped with a reason. Approving switches the e-mail channel
+from `draft_only` to `approve_each_action` if needed. `lead-send` spends active authorisations once
+each, paced 4 s apart: the attempt is reserved before the provider call, the resume must match the
+authorised hash, the action ID rides in the `X-JW-Action-Id` header only (the adapter's
+`mark_body=False`), and a lost response is `unknown` and never resent. `lead-reconcile` settles
+unknowns from the Sent folder by recipient and subject, matching the header. Bounces and replies come
+in through `mail-sync`. Needs a `gmail.send` token to send and `gmail.readonly` to reconcile.
+
+Tested on the demo transport: a batch sends once and a repeat sends nothing; a lost response is
+never resent and reconciles from Sent; a changed resume is refused before any provider call; a
+blocked draft cannot be approved.
 
 LinkedIn rate limits are respected, not bypassed: a signed-in session stops at the first
 unusual-traffic warning.

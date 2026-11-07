@@ -39,6 +39,9 @@ COMMANDS = {
     "lead-draft-packet": ({"post_id", "facts_path"}, set()),
     "lead-draft-submit": ({"post_id", "subject", "body", "facts_path", "candidate"}, set()),
     "lead-drafts": (set(), {"state"}),
+    "lead-approve": ({"draft_ids", "resume_path"}, {"hours"}),
+    "lead-send": ({"resume_path"}, {"token_env", "limit"}),
+    "lead-reconcile": (set(), {"token_env"}),
     "merge-decide": ({"merge_id", "accept"}, set()),
     "merge-undo": ({"merge_id"}, set()),
     "opportunities": (set(), {"cursor", "limit"}),
@@ -220,6 +223,17 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command in ("lead-approve", "lead-send", "lead-reconcile"):
+        from . import lead_queue
+        if command == "lead-approve":
+            return lead_queue.approve(ws, data["draft_ids"], data["resume_path"], data.get("hours", 24))
+        from .gmail import transport
+        scopes = ["gmail.send"] if command == "lead-send" else ["gmail.readonly"]
+        gmail = transport({"transport": "http", "token_env": data.get("token_env", "JW_GMAIL_SEND_TOKEN"),
+                           "scopes": scopes})
+        if command == "lead-send":
+            return lead_queue.send(ws, gmail, data["resume_path"], data.get("limit", 20))
+        return lead_queue.reconcile(ws, gmail)
     if command.startswith("lead-draft"):
         from . import lead_drafts
         if command == "lead-draft-packet":
