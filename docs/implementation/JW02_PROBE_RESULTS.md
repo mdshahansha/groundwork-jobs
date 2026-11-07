@@ -97,3 +97,40 @@ Classifier defects found on real mail and fixed in the same change, with regress
 Still open for JW-02: no Gmail adapter calls the Gmail API from `jw` itself (the probe used the
 host's connector), so durable history-ID sync, label handling and quota behaviour are untested;
 live sending stays skipped by owner decision; Distilly host inference is not run.
+
+## Durable Gmail adapter (2026-11-07)
+
+`src/jw/gmail.py`. Proven against `DemoGmail` (fault injection) and `ReplayGmail`:
+
+| Contract | Result |
+| --- | --- |
+| First run with no cursor | Full rebuild over `messages.list`; cursor set to the mailbox `historyId` |
+| Incremental | `history.list` from the cursor, paginated; re-run fetches nothing |
+| Expired history (404) | Falls back to rebuild; no duplicate events |
+| Crash mid-batch | Nothing partial; cursor unchanged; re-run completes |
+| Provider quota (429 / rate-limit 403) | Run pauses with `retry_after`; no retry loop; next run resumes |
+| Local unit budget | Stops before overspending Gmail quota units |
+| Labels | Applied after commit; a label failure is counted, not rolled back |
+| Scope and policy | `missing_scope` / `policy_denied` before any provider call |
+| Send | Reserved first; `X-JW-Action-Id` in header and body; 4xx failed |
+| Lost response | `send_unknown`, never resent, accepted only when the Sent folder holds the action ID |
+| Replay of the real probe export | 7 messages synced (review queue, fresh workspace); second run fetched 0 |
+
+## Live send qualification (2026-11-07)
+
+Owner-approved, one message from the owner's Gmail to the same address, through the connected
+Gmail tool. The attempt was reserved in a local workspace first; its action ID went in the body.
+
+| Step | Result |
+| --- | --- |
+| Reserve before provider call | Attempt in flight with an action ID |
+| Provider send | Gmail returned message and thread IDs |
+| Lost response simulated (`record unknown`) | `send_unknown`; no resend |
+| Live Sent-folder search for the action ID | 1 hit; reconcile set `sent_accepted` with the thread as evidence |
+| Inbox copy synced through MailSync | Attached to the job by thread signal |
+
+The connector cannot set custom headers, so the action ID was matched from the body; `GmailAdapter`
+also sets it as `X-JW-Action-Id`.
+
+Not proven: `HttpGmail` against the live API (needs an OAuth token the workspace does not hold) and
+Distilly host inference.

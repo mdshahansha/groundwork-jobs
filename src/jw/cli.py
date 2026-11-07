@@ -50,6 +50,8 @@ COMMANDS = {
     "draft-render": ({"task_id", "output_path"}, set()),
     "draft-verify": ({"task_id"}, set()),
     "draft-readiness": ({"task_id"}, set()),
+    "mail-sync": ({"transport"}, {"path", "token_env", "scopes", "budget", "allowed"}),
+    "mail-review": (set(), set()),
     "profile-map": ({"job_id", "markdown"}, set()),
     "handoff-preview": ({"cv_task_id", "letter_task_id", "output_path"}, set()),
     "delete-preview": ({"source_id"}, set()),
@@ -156,6 +158,18 @@ def dispatch(ws, command, data):
         return tasks.resume(**data)
     if command == "draft-export":
         return tasks.private_export(**data)
+    if command in ("mail-sync", "mail-review"):
+        from .actions import Actions
+        from .execution import Executor
+        from .gmail import GmailAdapter, transport
+        from .mailsync import MailSync
+        executor = Executor(Actions(ws))
+        if command == "mail-review":
+            return {"review": MailSync(executor).review_queue()}
+        allowed = data.get("allowed", ["read"])
+        require(isinstance(allowed, list) and set(allowed) <= {"read", "label"}, "invalid_schema",
+                "mail-sync allows read and label only; sending stays unsupported here.")
+        return GmailAdapter(executor, transport(data), budget=data.get("budget", 5000), allowed=allowed).sync()
     if command == "draft-readiness":
         from .visual import readiness
         return readiness(tasks, data["task_id"])
