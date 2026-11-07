@@ -115,8 +115,9 @@ class MailSync:
 
     def _one(self, m):
         with self.store.transaction():
-            if m["history_id"] <= self.checkpoint() or self.db.execute(
-                    "SELECT 1 FROM mail_events WHERE message_id=?", (m["message_id"],)).fetchone():
+            # Gmail history IDs are shared and not ordered per message, so the checkpoint is a cursor
+            # only; the message ID alone decides a duplicate.
+            if self.db.execute("SELECT 1 FROM mail_events WHERE message_id=?", (m["message_id"],)).fetchone():
                 self._advance(m["history_id"])
                 return ("duplicate", None)
             sender = _sha(m["from"])

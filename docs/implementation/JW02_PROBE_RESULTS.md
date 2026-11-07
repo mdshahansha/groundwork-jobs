@@ -151,4 +151,18 @@ writer hash, ran upstream `owner_profile.py save` under a temporary `DISTILLY_OW
 mapped the saved file: `passed: true`, 3 lines mapped, 16 unassessed, summary 336 chars, 4 inferred
 lines, no forbidden text leaked, no host linking.
 
-Not proven: `HttpGmail` against the live API (needs an OAuth token the workspace does not hold).
+## Live HttpGmail sync (2026-11-07)
+
+Owner-approved, `gmail.readonly` token from the owner's `.env` (never printed or committed), throwaway
+workspace outside the checkout. Nothing was sent, drafted or labelled.
+
+| Run | Result |
+| --- | --- |
+| First (`mail-sync`, http) | rebuild, complete, 319 fetched, 1616 quota units |
+| Second | history mode, complete, 0 fetched, 2 units (idempotent) |
+| Review queue | 286 before the fix below |
+
+Defect found and fixed: 33 of 319 real messages were counted as duplicates in an empty workspace.
+`MailSync` treated any message whose history ID was at or below the checkpoint as already seen, but
+Gmail history IDs are shared and not ordered per message. The message ID alone now decides a
+duplicate; regression test `test_shared_or_older_history_id_is_not_a_duplicate`.

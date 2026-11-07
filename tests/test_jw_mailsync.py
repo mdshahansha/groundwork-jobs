@@ -132,6 +132,16 @@ class MailSyncTests(unittest.TestCase):
         self.assertTrue(suppressed(self.ws, TO))
         self.assertEqual(["hard_bounce"], [e["reason"] for e in journal(self.ws.store.root)])
 
+    def test_shared_or_older_history_id_is_not_a_duplicate(self):
+        # Live Gmail: 33 of 319 messages shared or trailed another message's historyId.
+        first = self.msg("Hi", "One.")
+        same = dict(self.msg("Hi", "Two."), history_id=first["history_id"])
+        older = dict(self.msg("Hi", "Three."), history_id=first["history_id"] - 50)
+        report = self.sync.sync([first, same, older])
+        self.assertEqual(0, report["duplicate"])
+        self.assertTrue(all(self.event(m["message_id"]) for m in (first, same, older)))
+        self.assertEqual(3, self.sync.sync([first, same, older])["duplicate"])
+
     def test_partial_fetch_keeps_checkpoint_at_last_processed(self):
         good = self.msg("Re", "Thank you for applying.", thread="thread-a")
         bad = self.msg("Re", "x")
