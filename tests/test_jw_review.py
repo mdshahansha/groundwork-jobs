@@ -51,7 +51,9 @@ class IndependentReview(Repair):
         rendered = self.packet(self.review_task())["rendered"]
         self.assertIn(self.assertion(0)["text"], rendered["text"])
         self.assertEqual("mechanical_passed", rendered["mechanical_status"])
-        self.assertTrue(rendered["page_images"].startswith("not_supplied"))
+        # With the visual extra the reviewer gets image files (tests/test_jw_visual.py); without it, it is told so.
+        images = rendered["page_images"]
+        self.assertTrue(isinstance(images, list) or images.startswith("not_supplied"))
 
     def test_requirement_matrix_carries_job_requirements_and_accepted_mappings(self):
         self.ws.db.execute("INSERT INTO requirement_reviews VALUES ('rr1',?,'required',0,?,'direct',1,'t')",

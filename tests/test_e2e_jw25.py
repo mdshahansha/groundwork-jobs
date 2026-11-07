@@ -1,6 +1,7 @@
 """E2E JW-25: the M1 scenarios not covered in-process (M1-02, M1-07, M1-08, M1-11), through the CLI."""
 
 import os
+from pathlib import Path
 import unittest
 
 from e2e_support import CV, E2E
@@ -36,6 +37,20 @@ class M1RemainingE2E(E2E):
         self.env["PYTHONPATH"] = str(fake.parent) + os.pathsep + self.env["PYTHONPATH"]
         self.fails("toolchain_missing", "draft-verify", {"task_id": letter})
         self.assertNotEqual("ready", self.ok("application-state", {"job_id": job})["preparation"])
+
+    def test_m1_01_draft_reaches_ready_only_through_all_gates(self):
+        _, claim = self.profile()
+        job = self.job()
+        letter = self.draft(job, claim)
+        self.assertFalse(self.ok("draft-readiness", {"task_id": letter})["ready"])
+        self.assertEqual("mechanical_passed", self.ok("draft-verify", {"task_id": letter})["status"])
+        review = self.ok("task-create", {"job_id": job, "kind": "review", "consent": True, "draft_id": letter})["task_id"]
+        images = self.ok("task-packet", {"task_id": review})["packet"]["rendered"]["page_images"]
+        self.assertTrue(all(Path(i["path"]).read_bytes()[:4] == b"\x89PNG" for i in images))
+        self.ok("task-submit", {"task_id": review, "response": {"output": {"findings": []}, "usage": {
+            "model": "synthetic-fixture", "input_tokens": None, "output_tokens": None}}})
+        result = self.ok("draft-readiness", {"task_id": letter})
+        self.assertEqual((True, []), (result["ready"], result["missing"]))
 
     def test_m1_08_prior_application_needs_prepare_anyway(self):
         _, claim = self.profile()

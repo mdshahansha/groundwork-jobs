@@ -507,7 +507,9 @@ class Workspace:
         # Physical-media erasure is not guaranteed (WAL/readers, snapshots, SSDs).
         self.db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         from .backup import sync_journal
+        from .visual import purge_erased
         sync_journal(self)
+        purge_erased(self)
         return dict(preview, state="logically_erased")
 
     def record_outcome(self, job_id, kind, effective_at):

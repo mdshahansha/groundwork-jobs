@@ -49,6 +49,7 @@ COMMANDS = {
     "draft-export": ({"task_id"}, set()),
     "draft-render": ({"task_id", "output_path"}, set()),
     "draft-verify": ({"task_id"}, set()),
+    "draft-readiness": ({"task_id"}, set()),
     "profile-map": ({"job_id", "markdown"}, set()),
     "handoff-preview": ({"cv_task_id", "letter_task_id", "output_path"}, set()),
     "delete-preview": ({"source_id"}, set()),
@@ -155,6 +156,9 @@ def dispatch(ws, command, data):
         return tasks.resume(**data)
     if command == "draft-export":
         return tasks.private_export(**data)
+    if command == "draft-readiness":
+        from .visual import readiness
+        return readiness(tasks, data["task_id"])
     if command == "draft-verify":
         return tasks.verify_draft(**data)
     if command == "draft-render":

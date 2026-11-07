@@ -76,7 +76,7 @@ class Tasks:
                 require(draft["state"] == "completed", "task_incomplete", "Complete the draft first.")
                 # Fresh packet (FR-DOC-06): draft, rendered text, cited evidence, requirement matrix,
                 # policy and style guide. Never the drafter's packet, history or rationale.
-                packet.update(self._review_inputs(job_id, draft, dependencies))
+                packet.update(self._review_inputs(job_id, draft, dependencies), draft_task_id=draft_id)
                 del packet["evidence"]
                 packet["draft_id"] = draft_id
                 packet["output_schema"] = {"findings": [{
@@ -125,9 +125,13 @@ class Tasks:
             pdf, _ = render_private_pdf(packet["profile"], output["assertions"], kind, packet["untrusted_job"])
             mechanical = verify(pdf, expected_content(packet["profile"], output["assertions"], kind,
                                                       packet["untrusted_job"]), packet["untrusted_job"])
+            from .visual import rasterise, store_images
+
+            pages = rasterise(pdf)
+            images = ("not_supplied: install the visual extra (pypdfium2) to give the reviewer page images"
+                      if pages is None else store_images(self.ws.store.root, draft["fingerprint"] + "-review", pages))
             rendered = {"text": gate_render(pdf)[2], "mechanical_status": mechanical["status"],
-                        "failed_checks": mechanical["failed_checks"],
-                        "page_images": "not_supplied: no rasteriser in the pinned render extra"}
+                        "failed_checks": mechanical["failed_checks"], "page_images": images}
         except WorkspaceError as exc:
             rendered = {"status": "not_rendered", "reason": exc.code}
         return {"draft": output, "rendered": rendered,
