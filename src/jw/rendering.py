@@ -67,7 +67,11 @@ def render_private_pdf(profile, assertions, kind, job=None):
     except importlib.metadata.PackageNotFoundError:
         require(False, "toolchain_missing", "Install the pinned render extra: groundwork-jobs[render].")
     require(version == REPORTLAB_VERSION, "toolchain_version", "Renderer version differs from the qualified pin.")
-    from reportlab.pdfbase.pdfmetrics import stringWidth
+    try:
+        from reportlab.pdfbase.pdfmetrics import stringWidth
+    except ImportError:
+        # Installed metadata but an unimportable package is still a missing toolchain, not a crash.
+        require(False, "toolchain_missing", "The renderer is installed but cannot be imported.")
     from reportlab.pdfgen.canvas import Canvas
 
     width = PAGE_WIDTH - 2 * MARGIN
