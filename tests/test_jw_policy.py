@@ -304,16 +304,17 @@ class CommandsAndMigration(Base):
     def test_v4_workspace_upgrades_to_current(self):
         self.ws.close()
         db = sqlite3.connect(self.root / "workspace.sqlite3")
-        for table in ("verifications", "extractions", "rankings", "requirement_reviews", "active_policy", "policies"):
+        for table in ("controls", "authorisations", "action_envelopes", "channel_modes", "verifications", "extractions",
+                      "rankings", "requirement_reviews", "active_policy", "policies"):
             db.execute(f"DROP TABLE {table}")
         db.execute("PRAGMA user_version=4")
         db.commit()
         db.close()
         Store(self.root).close()
         self.ws = Workspace(self.root)
-        self.assertEqual(7, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
+        self.assertEqual(8, self.ws.db.execute("PRAGMA user_version").fetchone()[0])
         self.assertCode("policy_missing", self.ws.active_policy)
-        self.assertEqual(7, self.ws.status()["schema_version"])
+        self.assertEqual(8, self.ws.status()["schema_version"])
 
 
 if __name__ == "__main__":

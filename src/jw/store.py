@@ -96,7 +96,23 @@ VERIFICATION_SCHEMA = (
     "CREATE TABLE verifications (id TEXT PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id), "
     "pdf_sha256 TEXT NOT NULL, status TEXT NOT NULL, result TEXT NOT NULL, created_at TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 7
+# JW-11: channel modes, frozen action envelopes, hash-bound authorisations and the stop flag.
+ACTION_SCHEMA = (
+    "CREATE TABLE channel_modes (channel TEXT PRIMARY KEY CHECK(channel IN ('email','comment','ats')), "
+    "mode TEXT NOT NULL CHECK(mode IN ('draft_only','approve_each_action','authorized_campaign')), updated_at TEXT NOT NULL)",
+    "CREATE TABLE action_envelopes (id TEXT PRIMARY KEY, channel TEXT NOT NULL, action_type TEXT NOT NULL, "
+    "destination TEXT NOT NULL, content TEXT NOT NULL, content_hash TEXT NOT NULL, attachment_hashes TEXT NOT NULL, "
+    "profile_version TEXT NOT NULL, created_at TEXT NOT NULL)",
+    "CREATE TRIGGER action_envelopes_immutable BEFORE UPDATE ON action_envelopes "
+    "BEGIN SELECT RAISE(ABORT, 'action envelopes are immutable'); END",
+    "CREATE TABLE authorisations (id TEXT PRIMARY KEY, envelope_id TEXT NOT NULL REFERENCES action_envelopes(id), "
+    "channel TEXT NOT NULL, action_type TEXT NOT NULL, destination TEXT NOT NULL, content_hash TEXT NOT NULL, "
+    "attachment_hashes TEXT NOT NULL, profile_version TEXT NOT NULL, expires_at TEXT NOT NULL, creator TEXT NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('active','used','expired','revoked','invalid')), created_at TEXT NOT NULL, "
+    "ended_at TEXT)",
+    "CREATE TABLE controls (name TEXT PRIMARY KEY, value TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 8
 
 
 class Store:
@@ -174,6 +190,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=7")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 7:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 7:
+                    for statement in ACTION_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=8")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -193,7 +217,8 @@ class Store:
 
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
-        require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions"}, "invalid_schema", "Unknown entity.")
+        require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions",
+                           "action_envelopes", "authorisations"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")

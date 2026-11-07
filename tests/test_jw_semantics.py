@@ -242,7 +242,8 @@ class EntailmentReview(ParaphraseLifecycle):
             db.execute("ALTER TABLE p RENAME TO paraphrases")
             db.execute("INSERT INTO paraphrases VALUES ('par_old',?,?,'guard-1','[]','2026-10-30T00:00:00+00:00',0)",
                        (claim, "For 2 teams, built tools."))
-            for table in ("verifications", "extractions", "rankings", "requirement_reviews", "active_policy", "policies"):
+            for table in ("controls", "authorisations", "action_envelopes", "channel_modes", "verifications", "extractions",
+                          "rankings", "requirement_reviews", "active_policy", "policies"):
                 db.execute(f"DROP TABLE {table}")  # schema 5 tables did not exist at schema 3
             db.execute("PRAGMA user_version=3")
             db.commit()
