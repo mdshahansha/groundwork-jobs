@@ -43,11 +43,18 @@ class Tasks:
         self.store = workspace.store
         self.db = workspace.db
 
-    def create(self, job_id, kind, consent=False, draft_id=None):
+    def create(self, job_id, kind, consent=False, draft_id=None, prepare_anyway=False):
         require(isinstance(kind, str) and kind in TASK_KINDS, "unsupported_task", "Task kind is not implemented.")
         require(consent is True, "consent_required", "Explicitly consent to sharing the displayed packet with your host model.")
         require((kind in ("review", "repair")) == (draft_id is not None), "invalid_schema",
                 "Only review (a draft ID) and repair (a review ID) take draft_id.")
+        if kind in ("draft_cv", "draft_letter") and prepare_anyway is not True:
+            from .opportunities import prior_applications
+            policy, _ = self.ws.active_policy() if self.db.execute("SELECT 1 FROM active_policy").fetchone() \
+                else ({"history": {"exclude_applied_within_days": None}}, None)
+            prior = prior_applications(self.ws, job_id, policy["history"]["exclude_applied_within_days"])
+            require(not prior, "prior_application",
+                    "An earlier application to this employer and role exists; pass prepare_anyway to continue.")
         with self.store.transaction():
             dependencies = self.ws.dependencies(job_id)
             packet = {"schema_version": "1", "kind": kind, "allowed_tools": [],

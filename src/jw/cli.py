@@ -31,7 +31,11 @@ COMMANDS = {
     "mapping-review-submit": ({"mapping_review_id", "response"}, set()),
     "rank": ({"job_id", "mapping", "assessment"}, {"preferred_mapping"}),
     "rankings": (set(), {"include_outdated"}),
-    "task-create": ({"job_id", "kind", "consent"}, {"draft_id"}),
+    "task-create": ({"job_id", "kind", "consent"}, {"draft_id", "prepare_anyway"}),
+    "post-ingest": ({"post"}, set()),
+    "merge-decide": ({"merge_id", "accept"}, set()),
+    "merge-undo": ({"merge_id"}, set()),
+    "opportunities": (set(), {"cursor", "limit"}),
     "usage-report": ({"job_id"}, set()),
     "extraction-create": ({"source_id", "consent"}, set()),
     "extraction-packet": ({"extraction_id"}, set()),
@@ -186,6 +190,16 @@ def dispatch(ws, command, data):
         waiting = schedule.check(data["channel"])
         return {"channel": data["channel"], "now": waiting is None,
                 "reason": waiting[0] if waiting else None, "next": waiting[2] if waiting else None}
+    if command in ("post-ingest", "merge-decide", "merge-undo", "opportunities"):
+        from .opportunities import Opportunities
+        opps = Opportunities(ws)
+        if command == "post-ingest":
+            return opps.ingest(data["post"])
+        if command == "merge-decide":
+            return opps.decide(data["merge_id"], data["accept"])
+        if command == "merge-undo":
+            return opps.unmerge(data["merge_id"])
+        return opps.page(data.get("cursor"), data.get("limit", 20))
     if command == "suppress":
         from .suppression import suppress
         return suppress(ws, data["address"], data["reason"], data.get("company"))

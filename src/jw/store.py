@@ -158,7 +158,21 @@ MAIL_SCHEMA = (
     "received_at TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
     "CREATE TABLE mail_ignored_senders (sender_sha256 TEXT PRIMARY KEY, at TEXT NOT NULL)",
 )
-SCHEMA_VERSION = 14
+# JW-21: every sighting of a job is a source post; opportunities group them through reversible merges.
+OPPORTUNITY_SCHEMA = (
+    "CREATE TABLE opportunities (id TEXT PRIMARY KEY, created_at TEXT NOT NULL)",
+    "CREATE TABLE source_posts (id TEXT PRIMARY KEY, provider TEXT NOT NULL, external_id TEXT, "
+    "canonical_url TEXT, company_key TEXT NOT NULL, title_key TEXT NOT NULL, location_key TEXT NOT NULL, "
+    "requisition TEXT, recruiter TEXT, shingles TEXT NOT NULL, data TEXT NOT NULL, "
+    "origin_opportunity TEXT NOT NULL REFERENCES opportunities(id), "
+    "opportunity_id TEXT NOT NULL REFERENCES opportunities(id), job_id TEXT REFERENCES jobs(id), "
+    "created_at TEXT NOT NULL, UNIQUE(provider, external_id))",
+    "CREATE TABLE merges (id TEXT PRIMARY KEY, into_id TEXT NOT NULL REFERENCES opportunities(id), "
+    "absorbed_id TEXT NOT NULL REFERENCES opportunities(id), layer INTEGER NOT NULL, confidence REAL NOT NULL, "
+    "state TEXT NOT NULL CHECK(state IN ('proposed','merged','rejected','undone')), created_at TEXT NOT NULL, "
+    "updated_at TEXT NOT NULL)",
+)
+SCHEMA_VERSION = 15
 
 
 class Store:
@@ -292,6 +306,14 @@ class Store:
                     self.db.execute("PRAGMA user_version=14")
                 self.db.commit()
                 version = self.db.execute("PRAGMA user_version").fetchone()[0]
+            if version == 14:
+                self.db.execute("BEGIN EXCLUSIVE")
+                if self.db.execute("PRAGMA user_version").fetchone()[0] == 14:
+                    for statement in OPPORTUNITY_SCHEMA:
+                        self.db.execute(statement)
+                    self.db.execute("PRAGMA user_version=15")
+                self.db.commit()
+                version = self.db.execute("PRAGMA user_version").fetchone()[0]
             require(version == SCHEMA_VERSION, "unsupported_schema", "Workspace schema is unsupported.")
         except BaseException:
             if self.db.in_transaction:
@@ -312,7 +334,7 @@ class Store:
     def one(self, table, identifier):
         # Only internal callers select a fixed table name.
         require(table in {"sources", "claims", "jobs", "tasks", "requirement_reviews", "rankings", "extractions",
-                           "action_envelopes", "authorisations", "attempts", "history_imports", "followups"}, "invalid_schema", "Unknown entity.")
+                           "action_envelopes", "authorisations", "attempts", "history_imports", "followups", "merges", "opportunities"}, "invalid_schema", "Unknown entity.")
         string(identifier, 100)
         row = self.db.execute(f"SELECT * FROM {table} WHERE id=?", (identifier,)).fetchone()
         require(row is not None, "not_found", "Entity not found.")
