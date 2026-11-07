@@ -169,7 +169,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Local job workspace (development checkpoint; no external actions)")
     parser.add_argument("--workspace", required=True, help="Private directory outside the application source checkout")
     parser.add_argument("command", choices=sorted(set(COMMANDS) | UNSUPPORTED |
-                                                {"init", "status", "source-import", "profile-publish", "policy-show"}))
+                                                {"init", "status", "source-import", "archive-import", "profile-publish", "policy-show"}))
     parser.add_argument("--input", help="UTF-8 JSON request file; raw UTF-8 text for source-import")
     parser.add_argument("--sensitivity", choices=["public", "private", "restricted"], default="private")
     parser.add_argument("--dry-run", action="store_true",
@@ -180,7 +180,7 @@ def main(argv=None):
     try:
         require(args.command not in UNSUPPORTED, "unsupported_capability",
                 "Capability is disabled; no external action or ready export occurred.")
-        needs_input = args.command in COMMANDS or args.command == "source-import"
+        needs_input = args.command in COMMANDS or args.command in ("source-import", "archive-import")
         require(bool(args.input) == needs_input, "invalid_arguments", "Provide --input only for commands requiring payloads.")
         raw = read_bounded(args.input) if needs_input else None
         if args.dry_run:
@@ -194,6 +194,9 @@ def main(argv=None):
                 manifest = _manifest(data["backup"])
                 result = {"simulated": True, "result": {"valid": True, "schema_version": manifest["schema_version"]},
                           "effects": {"rows": {}, "audit": [], "files": [], "external_actions": []}}
+            elif args.command == "archive-import":
+                result = run(args.workspace, args.command, {"raw": raw}, lambda w, c, d: w.import_archive(
+                    d["raw"], provenance=args.provenance, sensitivity=args.sensitivity))
             elif args.command == "source-import":
                 result = run(args.workspace, args.command, {"raw": raw}, lambda w, c, d: w.import_source(
                     d["raw"], provenance=args.provenance, sensitivity=args.sensitivity))
@@ -211,7 +214,9 @@ def main(argv=None):
             print(canonical({"ok": True, "result": restore(args.workspace, data["backup"])}))
             return 0
         ws = Workspace(args.workspace, create=args.command == "init")
-        if args.command == "source-import":
+        if args.command == "archive-import":
+            result = ws.import_archive(raw, provenance=args.provenance, sensitivity=args.sensitivity)
+        elif args.command == "source-import":
             result = ws.import_source(raw, provenance=args.provenance, sensitivity=args.sensitivity)
         else:
             result = dispatch(ws, args.command, parse_json(raw) if raw is not None else {})

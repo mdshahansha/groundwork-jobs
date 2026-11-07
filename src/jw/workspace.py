@@ -28,12 +28,19 @@ class Workspace:
         require(isinstance(provenance, str) and isinstance(sensitivity, str)
                 and provenance in PROVENANCE and sensitivity in SENSITIVITY,
                 "invalid_schema", "Unknown provenance or sensitivity.")
-        try:
-            text = raw.decode("utf-8-sig")
-        except UnicodeError:
-            require(False, "unsupported_format", "Only UTF-8 text sources are supported.")
-        require("\x00" not in text and not raw.startswith((b"%PDF", b"PK\x03\x04")),
-                "unsupported_format", "PDFs and archives require a qualified parser.")
+        from .untrusted import extract_pdf_text, refuse_image
+
+        refuse_image(raw)
+        require(not raw.startswith(b"PK\x03\x04"), "unsupported_format", "Import archives with archive-import.")
+        if raw.startswith(b"%PDF"):
+            # Parsed in an isolated, resource-limited interpreter; only page text is kept.
+            text = extract_pdf_text(raw)
+        else:
+            try:
+                text = raw.decode("utf-8-sig")
+            except UnicodeError:
+                require(False, "unsupported_format", "Only UTF-8 text sources are supported.")
+            require("\x00" not in text, "unsupported_format", "Binary content requires a qualified parser.")
         string(text, MAX_BYTES)
         require(not image_markup(text), "unsupported_format", "Image containers require a qualified privacy review path.")
         sha = hashlib.sha256(raw).hexdigest()
@@ -443,6 +450,17 @@ class Workspace:
                                 "SET value=excluded.value", (model,))
             self.store.audit("model_pinned" if model else "model_unpinned", "controls")
         return {"model": model, "versions": self.versions()}
+
+    def import_archive(self, raw, provenance="document", sensitivity="private"):
+        """Each readable member becomes its own source; nothing is imported unless all pass inspection."""
+        from .untrusted import archive_members
+
+        require(isinstance(raw, bytes) and 0 < len(raw) <= MAX_BYTES, "input_too_large", "Archive is too large.")
+        members, ignored = archive_members(raw)
+        imported = []
+        for name, data in members:
+            imported.append(dict(self.import_source(data, provenance, sensitivity), member=name))
+        return {"imported": imported, "ignored": ignored}
 
     def deletion_preview(self, source_id):
         self.store.one("sources", source_id)
