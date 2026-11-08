@@ -14,6 +14,11 @@ Maintained by [mdshahansha](https://github.com/mdshahansha). Licence: [MIT](LICE
 [Developer setup](#5-developer-setup) · [Architecture](#6-architecture) ·
 [Opportunities](#7-opportunities) · [Troubleshooting](#8-troubleshooting)
 
+The same analysis as separate documents, plus market positioning: [docs/product/](docs/product/README.md)
+([summary](docs/product/EXECUTIVE_SUMMARY.md), [features](docs/product/FEATURES.md),
+[user guide](docs/product/USER_GUIDE.md), [architecture](docs/product/ARCHITECTURE.md),
+[market](docs/product/MARKET_POSITIONING.md), [opportunities](docs/product/OPPORTUNITIES.md)).
+
 > Status labels used below. **Implemented**: code and tests exist in this repository.
 > **Planned**: documented, no code. **Unsupported**: the code refuses it on purpose.
 > **Needs Verification**: stated in docs or plausible, but not proven by a local check
