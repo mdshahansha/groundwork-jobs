@@ -19,7 +19,7 @@ Part of the product analysis. Index: [docs/product/README.md](README.md). Status
 | --- | --- | --- |
 | Founders, creators, marketers on LinkedIn | linkedin-skills | Posts, comments, replies, profile rewrite, content plans |
 | Marketing or sales teams | linkedin-skills (`linkedin-employee-advocacy`) | Team posting programme and its measurement |
-| Individual job seeker (the maintainer's own use case) | jw | Lead intake, filtering, honest per-post e-mails, approved sending |
+| Individual job seeker | jw | Lead intake, filtering, honest per-post e-mails, approved sending |
 | Developers who extend agent skills | both | A tested reference for read/write/image layers and evidence gates |
 
 ### Positioning

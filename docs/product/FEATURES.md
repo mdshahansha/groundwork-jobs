@@ -80,7 +80,7 @@ planning only) and also states the checkpoint is **partial, not M1 or R1 complet
 | Scheduling and metrics (JW-19, JW-23) | `schedule-set`, `schedule-next`, `metrics`, `opportunities` | `schedule.py`, `metrics.py` | Implemented |
 | Local API (JW-17) | WSGI app bound to 127.0.0.1 | `api.py` | Implemented, no CLI command |
 | Refused on purpose | `ready-export`, `send`, `ats-submit`, `capture`, `schedule` | `UNSUPPORTED` in `cli.py` | Unsupported: returns `unsupported_capability` |
-| Restore | `restore` | `backup.py` | Listed, but `status` reports `restore: unsupported`; the old README warns restore safety is unfinished |
+| Restore | `restore` | `backup.py` | Listed, but `status` reports `restore: unsupported`; restore safety is unfinished |
 
 **Lead pipeline** ([LEAD_PIPELINE.md](../../docs/implementation/LEAD_PIPELINE.md)):
 
@@ -95,5 +95,4 @@ planning only) and also states the checkpoint is **partial, not M1 or R1 complet
 
 Note: the generic `send` command is unsupported, and `status` reports
 `send: unsupported`. Approved lead e-mails go only through `lead-send`, which needs a
-`gmail.send` token. The CLI's `--help` text still says "no external actions"; that
-predates `lead-send`.
+`gmail.send` token. The CLI's `--help` text says "no external actions", which does not match `lead-send`.
