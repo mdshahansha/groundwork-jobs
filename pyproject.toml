@@ -11,7 +11,7 @@ dependencies = []
 
 [project.optional-dependencies]
 render = ["reportlab==4.4.9"]
-render-test = ["reportlab==4.4.9", "pypdf==6.21.4", "pypdfium2==4.30.0"]
+render-test = ["reportlab==4.4.9", "pypdf==7.0.0", "pypdfium2==4.30.0"]
 visual = ["pypdfium2==4.30.0"]
 
 [project.scripts]
