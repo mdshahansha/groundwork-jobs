@@ -56,7 +56,7 @@ class LeadFilterTests(unittest.TestCase):
 
     def test_live_review_regressions(self):
         cases = ["Hiring Java Developer (Female Candidates), Hyderabad, 3-5 years. Mail a@f.example",
-                 "Hiring Java Full Stack Developer, Chennai, Experience: 5.1-11 Years. Mail a@d.example",
+                 "Hiring Java Full Stack Developer, Chennai, Experience: 6.1-11 Years. Mail a@d.example",
                  "Hiring Node.js & React Developer, Irving, Texas. OPT welcome. Mail a@t.example",
                  "Hiring Technical Project Manager + Developer, React, remote India. Mail a@p.example",
                  "Senior Security Engineer, GenAI guardrails, Remote India, 4+ years. Mail a@s.example"]

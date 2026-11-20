@@ -61,6 +61,12 @@ Live run over the phase-1 workspace, 2026-11-07: 904 opportunities, 8 kept. Drop
 experience 428, excluded stack 368, too old 270, role 98, applied 82, poster volume 16 (a lead can
 fail several rules).
 
+Search-term cards (`src/jw/search_terms.py`): 50 job titles and skill combinations in 7 groups
+(general, full stack, backend, Java, frontend, mobile, skill combos). `search_queries()` gives one
+post-search query per card; `ROLE_PATTERN` widens the role check with their spelling variants. The
+experience limit defaults to 5: a posting asking up to 5 years passes the filter, while every drafted
+e-mail states the candidate's real experience from the facts file, never the posting's number.
+
 ## Phase 3: drafting
 
 The host model writes each e-mail from `lead-draft-packet` (post, candidate facts file, writing

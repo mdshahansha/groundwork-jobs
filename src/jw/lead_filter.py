@@ -2,7 +2,8 @@
 
 Rules (each failure is a reason code, never a silent drop):
   age            posted at most `max_age_hours` ago (default 48); unknown age fails
-  experience     the posting's minimum years at most `max_min_years` (default 4); unstated passes
+  experience     the posting's minimum years at most `max_min_years` (default 5; the e-mail still states
+                 the candidate's real years from the facts file); unstated passes
   role           title or text names a target role; excluded stacks and intern/fresher posts fail
   location       India, or remote open to India
   poster         the poster published at most `max_poster_posts` posts in 30 days (default 4).
@@ -19,11 +20,12 @@ import re
 
 from .contracts import require
 from .leads import FREE_MAIL, INDIA
+from .search_terms import ROLE_PATTERN
 
 TARGET = re.compile(r"node|react|java\b|spring|full[ -]?stack|mern|backend|back[- ]end|android|gen ?ai|\bai\b|"
                     r"llm|golang|\bgo\b developer|python|typescript|software (?:engineer|developer)|\bsde\b|"
                     r"forward deployed|next\.?js|javascript", re.I)
-EXCLUDE = re.compile(r"(?:\.net\b|\bc#|\b(?:intern|internship|unpaid|freshers?|php|laravel|angular developer|SAP|"
+EXCLUDE = re.compile(r"(?:\.net\b|\bc#|\b(?:intern|internship|unpaid|freshers?|php|laravel|SAP|"
                      r"salesforce|QA|tester|devops engineer|data engineer|embedded|business analyst|flutter|project manager|"
                      r"security engineer|female candidates|women candidates|women only|"
                      r"open to work|opentowork)\b)", re.I)
@@ -35,7 +37,7 @@ SKILLS = ("javascript", "typescript", "react", "next.js", "node", "express", "ja
           "rest", "microservices", "sql", "mysql", "postgresql", "mongodb", "redis", "hibernate", "jpa",
           "spring security", "aws", "docker", "github actions", "ci/cd", "jest", "junit", "mockito", "jwt",
           "oauth", "rbac", "redux", "python", "django", "socket.io", "kafka", "llm")
-POLICY = {"max_age_hours": 48, "max_min_years": 4, "max_poster_posts": 4, "skills": list(SKILLS)}
+POLICY = {"max_age_hours": 48, "max_min_years": 5, "max_poster_posts": 4, "skills": list(SKILLS)}
 
 
 def _when(value):
@@ -97,7 +99,8 @@ def screen(ws, policy=None, applied=(), now=None):
         body = post["title"] + " " + post["text"]
         # A LinkedIn post's title is a guess with a generic fallback, so its role is judged on the text;
         # a feed's title is authoritative and its text mentions unrelated stacks.
-        if not TARGET.search(post["text"] if row["provider"] == "linkedin_post" else post["title"]):
+        judged = post["text"] if row["provider"] == "linkedin_post" else post["title"]
+        if not (TARGET.search(judged) or ROLE_PATTERN.search(judged)):
             reasons.append("role")
         if EXCLUDE.search(body):
             reasons.append("excluded_stack")
