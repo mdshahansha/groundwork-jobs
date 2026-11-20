@@ -32,9 +32,11 @@ import urllib.request
 from .contracts import WorkspaceError, require, string, utcnow
 from .integrations import gmail_permission
 from .mailsync import MailSync
+from .simulation import refuse_provider_write
 
 UNITS = {"profile": 1, "history": 2, "list": 5, "get": 5, "labels": 1, "create_label": 5, "modify": 5,
          "send": 100, "search": 5}
+WRITES = {"create_label", "modify", "send"}
 DEFAULT_BUDGET = 5000
 REBUILD_QUERY = "newer_than:60d"
 LABEL = "jw/synced"
@@ -338,6 +340,8 @@ class GmailAdapter:
         self.spent += cost
 
     def _do(self, call, *args):
+        if call in WRITES:
+            refuse_provider_write("Gmail " + call)
         self._spend(call)
         try:
             return getattr(self.t, {"labels": "label_ids", "search": "search_sent"}.get(call, call))(*args)
@@ -435,6 +439,7 @@ class GmailAdapter:
         `mark_body=False` keeps the action ID out of the visible text (recruiter-facing mail); it stays
         in the X-JW-Action-Id header, which `reconcile` matches."""
         gmail_permission("send", self.t.scopes, self.allowed)
+        refuse_provider_write("sending e-mail")
         files = [(name, data, mime) for name, data, mime in attachments]
         reserved = self.ex.reserve(token, auth_id, "email", destination, content,
                                    attachments=[data for _, data, _ in files], guard=guard)

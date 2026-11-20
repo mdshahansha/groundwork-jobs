@@ -8,10 +8,14 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from unittest import mock
 
 from jw.actions import Actions
 from jw.cli import main
-from jw.contracts import canonical
+from jw.contracts import WorkspaceError, canonical
+from jw.execution import Executor
+from jw.gmail import DemoGmail, GmailAdapter
+from jw.simulation import ACTIVE, run
 from jw.tasks import Tasks
 from jw.workspace import Workspace
 from test_jw_ranking import assessment, policy
@@ -106,6 +110,96 @@ class SimulationTests(unittest.TestCase):
         self.assertEqual({"stopped", "auth_used"},
                          set(actions.simulate(auth, "email", "r@example.invalid", email)["refusals"]))
 
+    def test_provider_writes_are_refused_before_any_transport_is_built(self):
+        resume = Path(self.temp.name) / "resume.pdf"
+        resume.write_bytes(b"%PDF-1.4 synthetic")
+        cases = [("lead-send", {"resume_path": str(resume)}),
+                 ("mail-sync", {"transport": "http", "allowed": ["read", "label"]})]
+        for command, payload in cases:
+            with self.subTest(command=command), mock.patch("jw.gmail.transport") as transport:
+                before = self.snapshot()
+                code, out = self.dry(command, payload)
+                self.assertEqual((2, "unsupported_capability"), (code, out["error"]["code"]))
+                transport.assert_not_called()
+                self.assertEqual(before, self.snapshot())
+
+    def test_read_only_mail_sync_is_not_refused_under_dry_run(self):
+        gmail = DemoGmail(scopes=("gmail.readonly",))
+        gmail.deliver("news@other.example", "Weekly digest", "Nothing here.")
+        before = self.snapshot()
+        with mock.patch("jw.gmail.transport", return_value=gmail):
+            code, out = self.dry("mail-sync", {"transport": "http", "allowed": ["read"]})
+        self.assertEqual(0, code, out)
+        self.assertEqual((True, 1), (out["result"]["simulated"], out["result"]["result"]["fetched"]))
+        self.assertEqual(before, self.snapshot())
+
+    def test_gmail_adapter_refuses_writes_inside_any_simulation(self):
+        gmail = DemoGmail(scopes=("gmail.modify",))
+        content = {"subject": "Role", "body": "Hello."}
+        ws = Workspace(self.root)
+        actions = Actions(ws)
+        actions.set_mode("email", "approve_each_action")
+        executor = Executor(actions)
+        token = executor.acquire("w", seconds=3600)["token"]
+        envelope = actions.create_envelope("email", "r@example.invalid", content, job_id=self.job)
+        auth = actions.approve(envelope["envelope_id"], hours=24)["authorisation_id"]
+        live = GmailAdapter(executor, gmail, allowed=("read", "label", "send"))
+        live.sync()
+        sent = live.send(token, auth, "r@example.invalid", content)
+        thread = executor.attempt(sent["action_id"])["provider_ref"]
+        gmail.deliver("r@example.invalid", "Re: Role", "Thank you for applying.", thread=thread)
+        auth = actions.approve(actions.create_envelope("email", "s@example.invalid", content,
+                                                       job_id=self.job)["envelope_id"], hours=24)
+        ws.close()
+        calls, labels = len(gmail.calls), dict(gmail.labels)
+
+        def sync(ws, command, data):
+            GmailAdapter(Executor(Actions(ws)), gmail, allowed=("read", "label")).sync()
+
+        def send(ws, command, data):
+            executor = Executor(Actions(ws))
+            token = executor.acquire("w", seconds=3600)["token"]
+            adapter = GmailAdapter(executor, gmail, allowed=("send",))
+            adapter.send(token, auth["authorisation_id"], "s@example.invalid", content)
+
+        for name, dispatch in (("label", sync), ("send", send)):
+            with self.subTest(write=name), self.assertRaises(WorkspaceError) as refused:
+                run(self.root, "probe", {}, dispatch)
+            self.assertEqual("unsupported_capability", refused.exception.code)
+            self.assertFalse(ACTIVE.get())
+        self.assertFalse({"create_label", "modify", "send"} & set(gmail.calls[calls:]))
+        self.assertEqual(labels, gmail.labels)
+        ws = Workspace(self.root)
+        self.addCleanup(ws.close)
+        self.assertEqual("active", ws.store.one("authorisations", auth["authorisation_id"])["state"])
+
+    def test_caller_paths_are_redirected_into_the_scratch_copy(self):
+        backups = Path(self.temp.name) / "backups"
+        code, out = self.dry("backup", {"to": str(backups)})
+        self.assertEqual(0, code, out)
+        self.assertEqual([str(backups)], out["result"]["effects"]["files"])
+        self.assertFalse(backups.exists())
+        export = Path(self.temp.name) / "leads.csv"
+        code, out = self.dry("lead-filter", {"export_path": str(export)})
+        self.assertEqual(0, code, out)
+        self.assertEqual([str(export)], out["result"]["effects"]["files"])
+        self.assertFalse(export.exists())
+
+    def test_dry_run_does_not_migrate_an_older_live_database(self):
+        db = sqlite3.connect(self.root / "workspace.sqlite3")
+        db.execute("DROP TABLE lead_drafts")
+        db.execute("PRAGMA user_version=16")
+        db.commit()
+        db.close()
+        code, out = self.dry("status")
+        self.assertEqual(0, code, out)
+        db = sqlite3.connect(self.root / "workspace.sqlite3")
+        self.addCleanup(db.close)
+        self.assertEqual(16, db.execute("PRAGMA user_version").fetchone()[0])
+
+    def test_non_object_input_is_a_schema_error(self):
+        code, out = self.dry("rankings", [])
+        self.assertEqual((2, "invalid_schema"), (code, out["error"]["code"]))
 
 if __name__ == "__main__":
     unittest.main()

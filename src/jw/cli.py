@@ -177,7 +177,8 @@ def dispatch(ws, command, data):
         if command == "mail-review":
             return {"review": MailSync(executor).review_queue()}
         allowed = data.get("allowed", ["read"])
-        require(isinstance(allowed, list) and set(allowed) <= {"read", "label"}, "invalid_schema",
+        require(isinstance(allowed, list) and all(isinstance(a, str) for a in allowed)
+                and set(allowed) <= {"read", "label"}, "invalid_schema",
                 "mail-sync allows read and label only; sending stays unsupported here.")
         return GmailAdapter(executor, transport(data), budget=data.get("budget", 5000), allowed=allowed).sync()
     if command == "draft-readiness":
@@ -352,7 +353,14 @@ def main(argv=None):
                 result = run(args.workspace, args.command, {"raw": raw}, lambda w, c, d: w.import_source(
                     d["raw"], provenance=args.provenance, sensitivity=args.sensitivity))
             else:
-                result = run(args.workspace, args.command, parse_json(raw) if raw is not None else {}, dispatch)
+                data = parse_json(raw) if raw is not None else {}
+                # Refuse before any transport is built; the Gmail adapter also refuses writes while simulating.
+                labels = args.command == "mail-sync" and isinstance(data, dict) and \
+                    isinstance(data.get("allowed"), list) and "label" in data["allowed"]
+                require(args.command != "lead-send" and not labels, "unsupported_capability",
+                        "--dry-run cannot simulate provider writes (lead-send, mail-sync with label); "
+                        "nothing was sent or changed.")
+                result = run(args.workspace, args.command, data, dispatch)
             print(canonical({"ok": True, "result": result}))
             return 0
         if args.command == "restore":

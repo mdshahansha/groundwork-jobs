@@ -188,15 +188,22 @@ LEAD_DRAFT_SCHEMA = (
 SCHEMA_VERSION = 17
 
 
+def checked_database(root, create=False):
+    """The workspace database path; refused inside the source checkout or before init."""
+    root = Path(root).resolve()
+    # Resolve both sides: a checkout reached through a symlink (macOS /var -> /private/var) must still match.
+    checkout = Path(CODE_CHECKOUT).resolve()
+    require(not ((checkout / ".git").exists() and root.is_relative_to(checkout)),
+            "unsafe_workspace", "Store candidate data outside the application source checkout.")
+    database = root / "workspace.sqlite3"
+    require(create or database.is_file(), "not_initialized", "Run init first.")
+    return database
+
+
 class Store:
     def __init__(self, root, create=False):
         self.root = Path(root).resolve()
-        # Resolve both sides: a checkout reached through a symlink (macOS /var -> /private/var) must still match.
-        checkout = Path(CODE_CHECKOUT).resolve()
-        require(not ((checkout / ".git").exists() and self.root.is_relative_to(checkout)),
-                "unsafe_workspace", "Store candidate data outside the application source checkout.")
-        database = self.root / "workspace.sqlite3"
-        require(create or database.is_file(), "not_initialized", "Run init first.")
+        database = checked_database(self.root, create)
         if create:
             self.root.mkdir(parents=True, exist_ok=True)
         self.db = sqlite3.connect(database, timeout=10, isolation_level=None)
