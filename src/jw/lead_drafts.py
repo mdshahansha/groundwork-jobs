@@ -60,7 +60,8 @@ def check(post, subject, body, facts, candidate):
     numbers = sorted({n.strip().rstrip(".,") for n in NUMBER.findall(text)
                       if n.strip().rstrip(".,") and n.strip().rstrip(".,").lower() not in source})
     skills = sorted(s for s in SKILLS if _skill(text, s) and not _skill(facts, s))
-    banned = sorted(p for p in BANNED if p in lower)
+    # Whole words only: a company name such as CodingNinjas must not read as "ninja".
+    banned = sorted(p for p in BANNED if re.search(r"(?<![a-z])" + re.escape(p) + r"(?![a-z])", lower))
     asked_pay = bool(COMPENSATION.search(post["text"]))
     words = len(body.split())
     role_words = [w for w in re.findall(r"[a-z]+", post["title"].lower()) if len(w) > 2]

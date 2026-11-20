@@ -44,6 +44,9 @@ class DraftCheckTests(unittest.TestCase):
         self.assertEqual(["banned_phrases", "resume", "subject"], risk["failed"])
         self.assertIn("no_contact", self.run_check(post=dict(POST, contact_email=None))["failed"])
 
+    def test_banned_words_match_whole_words_only(self):
+        self.assertNotIn("banned_phrases", self.run_check(body=BODY.replace("At my current team", "At CodingNinjas"))["failed"])
+
     def test_personal_data_request_is_flagged_not_blocked(self):
         risk = self.run_check(post=dict(POST, text=POST["text"] + " Share DOB and PAN card."))
         self.assertEqual(["dob", "pan card"], risk["post_asks_personal_data"])
