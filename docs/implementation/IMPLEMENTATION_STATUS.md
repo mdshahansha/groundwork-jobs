@@ -1,8 +1,8 @@
 # Job workspace implementation status
 
-Checkpoint: 2026-10-28. **Partial implementation, not M1 or R1 completion.**
-The pre-implementation audit found JW-01 planning complete, JW-24 specification
-checks partial, and no job-workspace runtime. Legacy LinkedIn tooling is separate.
+Checkpoint: 2026-11-22. **All 25 tickets are implemented and verified for their
+supported runtime paths; JW-01 is planning only.** Each row's Blockers column lists
+what stays open. Legacy LinkedIn tooling is separate.
 
 Paths are repository-relative. W = tests/test_jw_workspace.py;
 C = tests/test_jw_csv_archive.py. Passing subsets do not complete a ticket.
