@@ -8,6 +8,23 @@ own facts, and sends only what you approve, once.
 The repository also ships a [LinkedIn skills plugin](#linkedin-skills-plugin) for Claude Code and
 Codex. Full analysis: [docs/product/](docs/product/README.md). Licence: [MIT](LICENSE).
 
+## The pipeline at a glance
+
+![Lead pipeline: seven steps, their state today, and where 2,000 posts went](docs/product/images/overview-pipeline.svg)
+
+| Step | Today | Next | Detail |
+| --- | --- | --- | --- |
+| 1. Hiring signals | A post counts only if it holds an e-mail | Person-first search, signal classifier | [image](docs/product/images/step-1-hiring-signals.svg) |
+| 2. The person | Author display name only | People record, author class | [image](docs/product/images/step-2-person.svg) |
+| 3. Contact route | First e-mail in the text | Route hierarchy with source and confidence; never guessed | [image](docs/product/images/step-3-contact.svg) |
+| 4. Opportunity | Regex fields; fit score saturates | Explicit vs assumed requirements, 10-factor score | [image](docs/product/images/step-4-opportunity.svg) |
+| 5. Resume | One fixed PDF | Evidence-gated variants chosen per lead | [image](docs/product/images/step-5-resume.svg) |
+| 6. E-mail | Checked against your facts | Signal-first, stricter checker | [image](docs/product/images/step-6-email.svg) |
+| 7. Approve and track | Approved sends, once each | Replies, bounces and opt-outs linked and suppressed | [image](docs/product/images/step-7-approval-tracking.svg) |
+
+Each image shows what the code does now (left) and what to build (right), with file references.
+The reasoning and roadmap are in the [strategic product audit](docs/product/STRATEGY_REPORT.md).
+
 ## Quick start
 
 1. Install (Python 3.11+) and create a workspace outside this repository:

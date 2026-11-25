@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="888" viewBox="0 0 1200 888" role="img" aria-labelledby="title desc">
+<title id="title">Step 1: Hiring signals (now versus target)</title>
+<desc id="desc">Step 1 Hiring signals. Now: Search cards with a recruiter-style suffix; Bulk export of LinkedIn posts; A post is a lead only if its text holds an e-mail; Poster check counts display names, skips reposts; No content analysis. Target: Person-first query families; URL capture through lib.fetch_post; Signal classifier: hiring-intent weight; Keep leads without an e-mail. Metric: Share of kept leads whose author is a hiring owner or in-house recruiter rises against the day-30 baseline; signal classifier precision ≥ 85%.</desc>
+<rect x="0.5" y="0.5" width="1199" height="887" rx="16" fill="#FFFFFF" stroke="#E2E8F0"/>
+<circle cx="54" cy="54" r="22" fill="#3538CD"/>
+<text x="54.0" y="61.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+<text x="92.0" y="52.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#0F172A" text-anchor="start">Step 1: Hiring signals</text>
+<rect x="1092.9" y="34.0" width="75.1" height="21.0" rx="6" fill="#FFFAEB" stroke="#FEDF89"/><text x="1130.4" y="48.5" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#B54708" text-anchor="middle" letter-spacing="0.6">PARTIAL</text>
+<text x="92.0" y="76.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="400" fill="#64748B" text-anchor="start">Vision: find posts that show a real hiring need from people who post varied professional content, not from accounts that post 10-20 job ads a day.</text>
+<rect x="32" y="104" width="556" height="625" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+<rect x="48.0" y="120.0" width="205.7" height="21.0" rx="6" fill="#FEF3F2" stroke="#B42318"/><text x="150.8" y="134.5" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#B42318" text-anchor="middle" letter-spacing="0.6">NOW: WHAT THE CODE DOES</text>
+<rect x="48" y="152" width="524" height="83" rx="10" fill="#F1F5F9" stroke="#475569" stroke-opacity="0.35"/>
+<rect x="48" y="152" width="6" height="83" rx="3" fill="#475569"/>
+<rect x="520.6" y="162.0" width="39.4" height="19.5" rx="6" fill="#475569"/><text x="540.3" y="175.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NOW</text>
+<text x="66.0" y="174.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Search cards with a recruiter-style suffix</text>
+<text x="66.0" y="191.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">50 job-title cards; every query ends in "hiring share resume"</text>
+<text x="66.0" y="212.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">src/jw/search_terms.py:10-26, :43-45</text>
+<line x1="310.0" y1="237" x2="310.0" y2="251" stroke="#94A3B8" stroke-width="2"/><path d="M304.0,249 L310.0,257 L316.0,249 Z" fill="#94A3B8"/>
+<rect x="48" y="259" width="524" height="83" rx="10" fill="#F1F5F9" stroke="#475569" stroke-opacity="0.35"/>
+<rect x="48" y="259" width="6" height="83" rx="3" fill="#475569"/>
+<rect x="520.6" y="269.0" width="39.4" height="19.5" rx="6" fill="#475569"/><text x="540.3" y="282.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NOW</text>
+<text x="66.0" y="281.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Bulk export of LinkedIn posts</text>
+<text x="66.0" y="298.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Live run 2026-11-07: 2,000 posts from one Apify export</text>
+<text x="66.0" y="319.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">docs/implementation/LEAD_PIPELINE.md:37-41</text>
+<line x1="310.0" y1="344" x2="310.0" y2="358" stroke="#94A3B8" stroke-width="2"/><path d="M304.0,356 L310.0,364 L316.0,356 Z" fill="#94A3B8"/>
+<rect x="48" y="366" width="524" height="100" rx="10" fill="#FEF3F2" stroke="#B42318" stroke-opacity="0.35"/>
+<rect x="48" y="366" width="6" height="100" rx="3" fill="#B42318"/>
+<rect x="520.6" y="376.0" width="39.4" height="19.5" rx="6" fill="#B42318"/><text x="540.3" y="389.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">GAP</text>
+<text x="66.0" y="388.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">A post is a lead only if its text holds an e-mail</text>
+<text x="66.0" y="405.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">776 of 2,000 posts dropped as unparsed</text>
+<text x="66.0" y="422.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Founders and EMs who write "DM me" or link a careers page are lost</text>
+<text x="66.0" y="443.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">src/jw/leads.py:107-109</text>
+<line x1="310.0" y1="468" x2="310.0" y2="482" stroke="#94A3B8" stroke-width="2"/><path d="M304.0,480 L310.0,488 L316.0,480 Z" fill="#94A3B8"/>
+<rect x="48" y="490" width="524" height="100" rx="10" fill="#FEF3F2" stroke="#B42318" stroke-opacity="0.35"/>
+<rect x="48" y="490" width="6" height="100" rx="3" fill="#B42318"/>
+<rect x="520.6" y="500.0" width="39.4" height="19.5" rx="6" fill="#B42318"/><text x="540.3" y="513.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">GAP</text>
+<text x="66.0" y="512.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Poster check counts display names, skips reposts</text>
+<text x="66.0" y="529.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">439 reposts (36% of posts with an e-mail) are folded before the count, so the</text>
+<text x="66.0" y="546.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">strongest ad-stream signal never reaches it</text>
+<text x="66.0" y="567.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">src/jw/lead_filter.py:79-84; src/jw/leads.py:176-180</text>
+<line x1="310.0" y1="592" x2="310.0" y2="606" stroke="#94A3B8" stroke-width="2"/><path d="M304.0,604 L310.0,612 L316.0,604 Z" fill="#94A3B8"/>
+<rect x="48" y="614" width="524" height="83" rx="10" fill="#FEF3F2" stroke="#B42318" stroke-opacity="0.35"/>
+<rect x="48" y="614" width="6" height="83" rx="3" fill="#B42318"/>
+<rect x="520.6" y="624.0" width="39.4" height="19.5" rx="6" fill="#B42318"/><text x="540.3" y="637.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">GAP</text>
+<text x="66.0" y="636.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">No content analysis</text>
+<text x="66.0" y="653.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">No hiring ratio, copied templates, topic diversity or company link</text>
+<text x="66.0" y="674.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">src/jw/lead_filter.py:68-131</text>
+<rect x="612" y="104" width="556" height="625" rx="14" fill="#F8FAFC" stroke="#E2E8F0"/>
+<rect x="628.0" y="120.0" width="189.4" height="21.0" rx="6" fill="#ECFDF3" stroke="#067647"/><text x="722.7" y="134.5" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#067647" text-anchor="middle" letter-spacing="0.6">TARGET: WHAT TO BUILD</text>
+<rect x="628" y="152" width="524" height="117" rx="10" fill="#ECFDF3" stroke="#067647" stroke-opacity="0.35"/>
+<rect x="628" y="152" width="6" height="117" rx="3" fill="#067647"/>
+<rect x="1100.6" y="162.0" width="39.4" height="19.5" rx="6" fill="#067647"/><text x="1120.3" y="175.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NEW</text>
+<text x="646.0" y="174.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Person-first query families</text>
+<text x="646.0" y="191.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">"my team" hiring &lt;stack&gt;; "I'm hiring" &lt;role&gt;</text>
+<text x="646.0" y="208.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Seniority and city terms cut the 47% experience and 65% location loss</text>
+<text x="646.0" y="225.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Exclude "our client", C2C, "multiple openings"</text>
+<text x="646.0" y="246.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">R7.2 (P1)</text>
+<line x1="890.0" y1="271" x2="890.0" y2="285" stroke="#94A3B8" stroke-width="2"/><path d="M884.0,283 L890.0,291 L896.0,283 Z" fill="#94A3B8"/>
+<rect x="628" y="293" width="524" height="83" rx="10" fill="#EFF8FF" stroke="#175CD3" stroke-opacity="0.35"/>
+<rect x="628" y="293" width="6" height="83" rx="3" fill="#175CD3"/>
+<rect x="1086.3" y="303.0" width="53.7" height="19.5" rx="6" fill="#175CD3"/><text x="1113.1" y="316.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">REUSE</text>
+<text x="646.0" y="315.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">URL capture through lib.fetch_post</text>
+<text x="646.0" y="332.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">5-10 hand-picked posts a day from the candidate's own feed</text>
+<text x="646.0" y="353.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">lib/apify_client.py:106; R7.4 (P1)</text>
+<line x1="890.0" y1="378" x2="890.0" y2="392" stroke="#94A3B8" stroke-width="2"/><path d="M884.0,390 L890.0,398 L896.0,390 Z" fill="#94A3B8"/>
+<rect x="628" y="400" width="524" height="206" rx="10" fill="#ECFDF3" stroke="#067647" stroke-opacity="0.35"/>
+<rect x="628" y="400" width="6" height="206" rx="3" fill="#067647"/>
+<rect x="1100.6" y="410.0" width="39.4" height="19.5" rx="6" fill="#067647"/><text x="1120.3" y="423.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NEW</text>
+<text x="646.0" y="422.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Signal classifier: hiring-intent weight</text>
+<text x="646.0" y="447.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Own-team opening</text>
+<rect x="822.0" y="436.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<rect x="822.0" y="436.0" width="278.0" height="12" rx="6" fill="#067647"/>
+<text x="1134.0" y="447.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">1.0</text>
+<text x="646.0" y="469.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Team growth</text>
+<rect x="822.0" y="458.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<rect x="822.0" y="458.0" width="194.6" height="12" rx="6" fill="#067647"/>
+<text x="1134.0" y="469.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">0.7</text>
+<text x="646.0" y="491.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Role referral</text>
+<rect x="822.0" y="480.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<rect x="822.0" y="480.0" width="111.2" height="12" rx="6" fill="#067647"/>
+<text x="1134.0" y="491.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">0.4</text>
+<text x="646.0" y="513.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Milestone, no role</text>
+<rect x="822.0" y="502.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<rect x="822.0" y="502.0" width="55.6" height="12" rx="6" fill="#067647"/>
+<text x="1134.0" y="513.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">0.2</text>
+<text x="646.0" y="535.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Agency multi-role ad</text>
+<rect x="822.0" y="524.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<rect x="822.0" y="524.0" width="55.6" height="12" rx="6" fill="#067647"/>
+<text x="1134.0" y="535.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">0.2</text>
+<text x="646.0" y="557.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Open-to-work post</text>
+<rect x="822.0" y="546.0" width="278.0" height="12" rx="6" fill="#E2E8F0"/>
+<text x="1134.0" y="557.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="700" fill="#0F172A" text-anchor="end">0.0</text>
+<text x="646.0" y="575.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">R7.3 (P1): precision ≥ 85% on 100 labelled posts</text>
+<line x1="890.0" y1="608" x2="890.0" y2="622" stroke="#94A3B8" stroke-width="2"/><path d="M884.0,620 L890.0,628 L896.0,620 Z" fill="#94A3B8"/>
+<rect x="628" y="630" width="524" height="83" rx="10" fill="#ECFDF3" stroke="#067647" stroke-opacity="0.35"/>
+<rect x="628" y="630" width="6" height="83" rx="3" fill="#067647"/>
+<rect x="1100.6" y="640.0" width="39.4" height="19.5" rx="6" fill="#067647"/><text x="1120.3" y="653.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NEW</text>
+<text x="646.0" y="652.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0F172A" text-anchor="start">Keep leads without an e-mail</text>
+<text x="646.0" y="669.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">Route becomes dm or apply_link instead of unparsed; hand over to step 2</text>
+<text x="646.0" y="690.0" font-family="ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">R7.1 (P0)</text>
+<circle cx="600.0" cy="130" r="11" fill="#FFFFFF" stroke="#94A3B8" stroke-width="1.5"/><path d="M596.0,125 L603.0,130 L596.0,135" fill="none" stroke="#94A3B8" stroke-width="2"/>
+<rect x="32" y="745" width="1136" height="83" rx="10" fill="#F8FAFC" stroke="#E2E8F0"/>
+<text x="48.0" y="767.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="0.8">SUCCESS METRIC</text>
+<text x="218.0" y="767.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="600" fill="#0F172A" text-anchor="start">Share of kept leads whose author is a hiring owner or in-house recruiter rises against the day-30 baseline; signal classifier precision ≥ 85%.</text>
+<text x="48.0" y="792.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748B" text-anchor="start" letter-spacing="0.8">RECOMMENDATIONS</text>
+<text x="218.0" y="792.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">R7.1 keep no-e-mail leads (P0) · R7.5 drop signed-in scraping from docs (P0) · R7.2 person-first queries (P1) · R7.3 signal classifier (P1) · R7.4</text>
+<text x="218.0" y="809.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#1E293B" text-anchor="start">URL capture (P1)</text>
+<text x="32.0" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="700" fill="#64748B" text-anchor="start">Key:</text>
+<rect x="66.0" y="844.0" width="39.4" height="19.5" rx="6" fill="#475569"/><text x="85.7" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NOW</text>
+<text x="111.4" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">current code</text>
+<rect x="198.8" y="844.0" width="39.4" height="19.5" rx="6" fill="#B42318"/><text x="218.5" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">GAP</text>
+<text x="244.2" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">defect or missing</text>
+<rect x="358.0" y="844.0" width="53.7" height="19.5" rx="6" fill="#175CD3"/><text x="384.8" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">REUSE</text>
+<text x="417.7" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">exists, reuse it</text>
+<rect x="526.1" y="844.0" width="39.4" height="19.5" rx="6" fill="#067647"/><text x="545.9" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NEW</text>
+<text x="571.6" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">to build</text>
+<rect x="637.8" y="844.0" width="46.6" height="19.5" rx="6" fill="#B54708"/><text x="661.1" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">RULE</text>
+<text x="690.4" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">policy or decision</text>
+<rect x="809.4" y="844.0" width="53.7" height="19.5" rx="6" fill="#B42318"/><text x="836.2" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="10.5" font-weight="700" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">NEVER</text>
+<text x="869.1" y="857.0" font-family="Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11" font-weight="400" fill="#64748B" text-anchor="start">forbidden</text>
+</svg>

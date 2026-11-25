@@ -8,6 +8,10 @@ changed while it was written.
 verified in this repository is labelled **Hypothesis**. No competitor is named and no market size
 is stated, because none was measured. Legal remarks are risk flags, not legal advice.
 
+**Images.** Each pipeline step has one image: what the code does now (left) and what to build
+(right), with file references, recommendation IDs and the success metric. Overview in section 1;
+steps in sections 7-12 and 16. Colour key and design tokens: [images/README.md](images/README.md).
+
 Priority scale: **P0** = do now (causes harm or blocks all value), **P1** = within 60 days,
 **P2** = within 90 days, **P3** = later or only if data supports it. Complexity: **S** ≤ 1 day,
 **M** 2-5 days, **L** 1-3 weeks, **XL** more.
@@ -69,6 +73,8 @@ Vision coverage today:
 | 5. Tailored resume | Exists, disconnected | Evidence-gated CV generation exists (`tasks.py`) but leads send one fixed PDF |
 | 6. Personal e-mail | Partial, conflicting | Checker forces a "resume attached" line and misses the vision's banned phrases |
 | 7. Approval and tracking | Partial | Batch approval by draft ID in JSON; replies, bounces, opt-outs and follow-ups not linked |
+
+![Lead pipeline overview: seven steps, their state, and the 2,000-post funnel](images/overview-pipeline.svg)
 
 ---
 
@@ -274,6 +280,8 @@ any productisation):
 
 ## 7. Hiring-person discovery strategy
 
+![Step 1, hiring signals: now versus target](images/step-1-hiring-signals.svg)
+
 **Principle: find the person first, then the post.** Today the funnel finds e-mails and
 discards everything else.
 
@@ -318,6 +326,8 @@ person-first families, run a few per day as the code comment already advises:
 ---
 
 ## 8. Posting-frequency and authenticity model
+
+![Step 2, the hiring person: now versus target](images/step-2-person.svg)
 
 **8.1 Resolve the three-way contradiction (C1).** The vision, PRD and code measure different
 things:
@@ -376,6 +386,8 @@ verdict (`02-prd.md:883`); identity is the provider profile ID, never the displa
 ---
 
 ## 9. Opportunity ranking algorithm
+
+![Step 4, opportunity and score: now versus target](images/step-4-opportunity.svg)
 
 **9.1 Design rules.** Hard gates first, score second. Score out of 100, every factor scored
 0 to 1, weights sum to 100, each contribution shown. Unknown inputs score 0.25 and lower the
@@ -440,6 +452,8 @@ rate; skill overlap will matter more for interview conversion than for replies.
 
 ## 10. Contact discovery and verification
 
+![Step 3, contact route: now versus target](images/step-3-contact.svg)
+
 **10.1 Route hierarchy** (take the first that exists; record all that exist):
 
 1. E-mail published by the person in the hiring post or on their own public profile for
@@ -488,6 +502,8 @@ keeps the tool inside "data the person made public for this purpose".
 ---
 
 ## 11. Tailored resume intelligence
+
+![Step 5, tailored resume: now versus target](images/step-5-resume.svg)
 
 **11.1 What already exists — do not rebuild.** A claims registry with provenance and
 sensitivity (JW-03), a paraphrase guard and approval (`semantics.py`), a `draft_cv` task whose
@@ -538,6 +554,8 @@ Reordered: microservices project moved to first bullet (matches "own a service e
 ---
 
 ## 12. Personalised outreach
+
+![Step 6, personal e-mail: now versus target](images/step-6-email.svg)
 
 **12.1 Anatomy** (≤ 120 words; **Hypothesis** that shorter performs better, test it):
 
@@ -650,6 +668,8 @@ Google OAuth client.
 ---
 
 ## 16. Architecture and workflow changes
+
+![Step 7, approval and tracking: now versus target](images/step-7-approval-tracking.svg)
 
 **16.1 The bridge (smallest change, largest effect).** `Actions.create_envelope` already accepts
 `job_id` (`actions.py:71`) and uses the job's company for suppression (`actions.py:100-104`).
