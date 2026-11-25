@@ -1,145 +1,107 @@
 # groundwork-jobs
 
-Two tools in one repository. **linkedin-skills** is a plugin of 12 LinkedIn skills for
-Claude Code and Codex that drafts posts, comments and replies and publishes only on your
-approval. **jw** is a local job-application workspace that finds job posts, filters them,
-checks each tailored e-mail against your own facts, and sends approved e-mails once.
+Find fresh job posts, keep the ones that fit you, and e-mail recruiters a tailored application
+with your resume. **jw** runs locally: it pulls posts from RemoteOK, Himalayas, the Naukri invites
+in your Gmail and LinkedIn post exports, filters and ranks them, checks every e-mail against your
+own facts, and sends only what you approve, once.
 
-Full analysis (features, architecture, market, opportunities): [docs/product/](docs/product/README.md).
-Licence: [MIT](LICENSE).
+The repository also ships a [LinkedIn skills plugin](#linkedin-skills-plugin) for Claude Code and
+Codex. Full analysis: [docs/product/](docs/product/README.md). Licence: [MIT](LICENSE).
 
-## Tools
+## Quick start
 
-### LinkedIn skills
-
-| Skill | What it does |
-| --- | --- |
-| [linkedin-post-writer](skills/linkedin-post-writer/SKILL.md) | Draft a new post from your notes with a proven hook |
-| [linkedin-comment-drafter](skills/linkedin-comment-drafter/SKILL.md) | Comment on, or reshare, someone else's post |
-| [linkedin-reply-handler](skills/linkedin-reply-handler/SKILL.md) | Reply to one existing comment |
-| [linkedin-hook-extractor](skills/linkedin-hook-extractor/SKILL.md) | Find the hook formula of a post and return a template |
-| [linkedin-humanizer](skills/linkedin-humanizer/SKILL.md) | Remove AI tells; audit a draft before posting |
-| [linkedin-profile-optimizer](skills/linkedin-profile-optimizer/SKILL.md) | Rewrite headline, About and other profile sections |
-| [linkedin-content-planner](skills/linkedin-content-planner/SKILL.md) | Seven-day content plan |
-| [linkedin-repurposer](skills/linkedin-repurposer/SKILL.md) | Turn a blog, video, newsletter or e-mail into a post |
-| [linkedin-employee-advocacy](skills/linkedin-employee-advocacy/SKILL.md) | Run a team posting programme |
-| [linkedin-thread-monitor](skills/linkedin-thread-monitor/SKILL.md) | Find your comments that got author replies |
-| [linkedin-engager-analytics](skills/linkedin-engager-analytics/SKILL.md) | Segment who liked or commented on a post |
-| [linkedin-interviewer](skills/linkedin-interviewer/SKILL.md) | Collect your stories and figures into a Story Bank |
-
-Optional connections: `APIFY_TOKEN` (read posts), `PUBLORA_API_KEY` +
-`LINKEDIN_PLATFORM_ID` (publish), `PIXFARO_TOKEN` (images). Without them you paste
-content in and copy drafts out. Names are in [.env.example](.env.example).
-
-Apify actors used by the read client:
-
-| Use case | Actor |
-| --- | --- |
-| Post body | `apimaestro/linkedin-post-detail` |
-| Post comments and replies | `apimaestro/linkedin-post-comments-replies-engagements-scraper-no-cookies` |
-| A user's recent comments | `apimaestro/linkedin-profile-comments` |
-| Post likers and commenters | `scraping_solutions/linkedin-posts-engagers-likers-and-commenters-no-cookies` |
-
-### jw lead pipeline
-
-Run as `jw --workspace <dir> <command> --input <request.json>`. Each prints one JSON result.
-
-| Command | What it does |
-| --- | --- |
-| `init`, `status` | Create a workspace; show its capabilities |
-| `lead-fetch` | Pull leads from `remoteok`, `himalayas` or `naukri_mail` |
-| `lead-import` | Load a LinkedIn post export (`linkedin_posts`) |
-| `lead-filter` | Drop poor fits with reasons; score the rest 0-100 |
-| `lead-draft-packet` | Build the brief your AI model writes the e-mail from |
-| `lead-draft-submit` | Store the e-mail; block it if it claims anything not in your facts |
-| `lead-drafts` | List drafts and their state |
-| `lead-approve` | Approve a batch of ready drafts with your resume |
-| `lead-send` | Send approved e-mails through Gmail, once each |
-| `lead-reconcile` | Settle sends with an unknown result from the Sent folder |
-
-Other jw commands (evidence, ranking, privacy, PDFs, mail sync, backups) are listed in
-`COMMANDS` in `src/jw/cli.py` and in [docs/product/FEATURES.md](docs/product/FEATURES.md).
-
-### Gmail setup tool
-
-| Tool | What it does |
-| --- | --- |
-| `tools/gmail_oauth_setup.py` | One-time Google sign-in; writes the Gmail refresh token to your env file |
-
-## Benefits
-
-- Drafts never claim a figure or skill you did not supply.
-- Each approved e-mail is sent at most once; a lost response is never resent.
-- A changed resume is refused before sending.
-- Old, irrelevant and already-applied leads are dropped with a reason.
-- Nothing publishes or sends without your approval.
-- Job data stays on your machine, outside the repository.
-- Writing skills work with no account or API key.
-
-## How to use
-
-### LinkedIn skills
-
-Claude Code:
-
-```text
-/plugin marketplace add mdshahansha/linkedin-skills
-/plugin install linkedin-skills@linkedin-skills
-```
-
-Codex, from this checkout:
-
-```bash
-python3 scripts/sync_codex_marketplace.py
-codex plugin marketplace add .
-codex plugin add linkedin-skills@linkedin-skills
-```
-
-Then ask, for example: "Draft a LinkedIn post from these notes."
-
-### jw
-
-1. Install (Python 3.11+):
+1. Install (Python 3.11+) and create a workspace outside this repository:
 
    ```bash
    python3 -m venv .venv
    .venv/bin/python -m pip install .
    ```
 
-2. Create a workspace outside this repository:
-
    ```bash
    .venv/bin/jw --workspace ~/.local/share/jw/main init
    ```
 
-3. Connect Gmail once (needs a Google "Desktop app" OAuth client):
+2. Connect Gmail once (needs a Google "Desktop app" OAuth client), then load the env file into
+   your shell:
 
    ```bash
    python3 tools/gmail_oauth_setup.py --env /path/to/.env --client-json /path/to/client_secret.json
    ```
 
-4. Fetch and filter leads. `fetch.json` holds `{"source": "remoteok"}`; `filter.json` can be `{}` for the default rules:
+   ```bash
+   set -a; . /path/to/.env; set +a
+   ```
+
+3. Fetch job posts. `fetch.json` is `{"source": "remoteok"}`, `{"source": "himalayas"}` or
+   `{"source": "naukri_mail", "days": 7}`:
 
    ```bash
    .venv/bin/jw --workspace ~/.local/share/jw/main lead-fetch --input fetch.json
    ```
 
+4. Filter them. `filter.json` can be `{}` for the default rules:
+
    ```bash
    .venv/bin/jw --workspace ~/.local/share/jw/main lead-filter --input filter.json
    ```
 
-5. Draft, approve and send: follow [From hiring post to recruiter e-mail](#from-hiring-post-to-recruiter-e-mail).
-   Input fields for each command are in `COMMANDS` in `src/jw/cli.py`.
+5. Draft, approve and send: follow [From job post to recruiter e-mail](#from-job-post-to-recruiter-e-mail).
 
-## From hiring post to recruiter e-mail
+## Job sources
 
-This is the full path jw takes: find a hiring post, pull out the role and the recruiter's
-e-mail, write a tailored e-mail that only states your own facts, and send it once with your
-resume after you approve it.
+| Priority | Source | Command | Needs | Recruiter e-mail |
+| --- | --- | --- | --- | --- |
+| 1 | RemoteOK public feed | `lead-fetch` `{"source": "remoteok"}` | Nothing | No: apply through the post link |
+| 1 | Himalayas public feed | `lead-fetch` `{"source": "himalayas"}` | Nothing | No: apply through the post link |
+| 1 | Naukri recruiter invites in your Gmail | `lead-fetch` `{"source": "naukri_mail", "days": 7}` | Gmail read access | No: apply on Naukri |
+| 2 | LinkedIn hiring posts | `lead-import` `{"source": "linkedin_posts", "path": "..."}` | A JSON export you make elsewhere | Yes, from the post text |
+
+Only posts that contain an e-mail address can be e-mailed. Feed and Naukri leads are still
+fetched, filtered and ranked, but their drafts are blocked as `no_contact`: apply through the
+link in the lead (`url`). jw never signs in to LinkedIn or scrapes it. A LinkedIn post with no
+e-mail is counted as `unparsed`, never guessed. A repost (same contact e-mail, same role) is
+stored once.
+
+## jw commands
+
+Run as `jw --workspace <dir> <command> --input <request.json>`. Each prints one JSON result.
+
+| Command | What it does |
+| --- | --- |
+| `init`, `status` | Create a workspace; show its capabilities |
+| `lead-fetch` | Pull job posts from `remoteok`, `himalayas` or `naukri_mail` |
+| `lead-import` | Load a LinkedIn post export (`linkedin_posts`) |
+| `lead-filter` | Drop poor fits with reasons; score the rest 0-100 |
+| `lead-draft-packet` | Build the brief Claude writes the e-mail from |
+| `lead-draft-submit` | Store the e-mail; block it if it claims anything not in your facts |
+| `lead-drafts` | List drafts and their state |
+| `lead-approve` | Approve a batch of ready drafts with your resume |
+| `lead-send` | Send approved e-mails through Gmail, once each |
+| `lead-reconcile` | Settle sends with an unknown result from the Sent folder |
+| `mail-sync`, `mail-review` | Read replies and bounces; list what could not be matched |
+| `tools/gmail_oauth_setup.py` | One-time Google sign-in; writes the Gmail refresh token to your env file |
+
+Other jw commands (evidence, ranking, privacy, PDFs, backups) are listed in `COMMANDS` in
+`src/jw/cli.py` and in [docs/product/FEATURES.md](docs/product/FEATURES.md).
+
+## Benefits
+
+- Fresh posts only: old, irrelevant and already-applied leads are dropped with a reason.
+- E-mails never claim a figure or skill you did not supply.
+- Nothing is sent without your approval.
+- Each approved e-mail is sent at most once; a lost response is never resent.
+- A changed resume is refused before sending.
+- Job data stays on your machine, outside the repository.
+
+## From job post to recruiter e-mail
+
+This is the full path: fetch job posts, pull out the role and the recruiter's e-mail, write a
+tailored e-mail that only states your own facts, and send it once with your resume after you
+approve it. Steps 3 to 6 apply to leads with a recruiter e-mail; see [Job sources](#job-sources).
 
 ```mermaid
 flowchart LR
-    A[Hiring post<br/>LinkedIn export, RemoteOK,<br/>Himalayas, Naukri mail] --> B[lead-import / lead-fetch<br/>parse role, company,<br/>contact e-mail, years]
+    A[Job posts<br/>RemoteOK, Himalayas,<br/>Naukri mail, LinkedIn export] --> B[lead-fetch / lead-import<br/>parse role, company,<br/>contact e-mail, years]
     B --> C[lead-filter<br/>drop with reasons,<br/>fit score 0-100]
     C --> D[lead-draft-packet<br/>post + your facts<br/>+ writing standard]
     D --> E[Claude writes<br/>subject and body]
@@ -160,7 +122,7 @@ Each prints one JSON object: `{"ok": true, "result": ...}` or `{"ok": false, "er
 ### Step 0: one-time setup
 
 1. Create the workspace (`init`) and connect Gmail with `tools/gmail_oauth_setup.py`, as in
-   [How to use](#how-to-use). The tool asks for `gmail.send` and `gmail.readonly`.
+   [Quick start](#quick-start). The tool asks for `gmail.send` and `gmail.readonly`.
 2. jw reads Gmail settings from the environment, not from a file. Load the env file the setup
    tool wrote into the shell that runs jw:
 
@@ -176,8 +138,20 @@ Each prints one JSON object: `{"ok": true, "result": ...}` or `{"ok": false, "er
 
 ### Step 1: get the hiring posts
 
-**LinkedIn posts.** jw does not sign in to LinkedIn or scrape it. Export posts elsewhere (for
-example an Apify run, see `APIFY_TOKEN` above) into a JSON array like this:
+**Main sources: job feeds and Naukri mail.** `lead-fetch` reads public feeds with no account, or Naukri
+recruiter invites already in your Gmail (read-only):
+
+| `fetch.json` | Reads |
+| --- | --- |
+| `{"source": "remoteok"}` | RemoteOK public feed |
+| `{"source": "himalayas"}` | Himalayas public feed |
+| `{"source": "naukri_mail", "days": 7}` | Naukri invites in your mailbox from the last 7 days |
+
+These leads carry the post link but no recruiter e-mail, so you apply through the link.
+The same contact e-mail with the same role is treated as a repost and stored once.
+
+**Extra source: LinkedIn posts.** jw does not sign in to LinkedIn or scrape it. Export posts elsewhere (for
+example an Apify run, see `APIFY_TOKEN` under [LinkedIn skills plugin](#linkedin-skills-plugin)) into a JSON array like this:
 
 ```json
 [
@@ -201,17 +175,6 @@ jw --workspace ~/.local/share/jw/main lead-import --input import.json
 
 To read a single post by its URL, the LinkedIn skills use `lib.fetch_post(url)` through Apify;
 paste that post's text into the array above to bring it into jw.
-
-**Job feeds and Naukri mail.** `lead-fetch` reads public feeds with no account, or Naukri
-recruiter invites already in your Gmail (read-only):
-
-| `fetch.json` | Reads |
-| --- | --- |
-| `{"source": "remoteok"}` | RemoteOK public feed |
-| `{"source": "himalayas"}` | Himalayas public feed |
-| `{"source": "naukri_mail", "days": 7}` | Naukri invites in your mailbox from the last 7 days |
-
-The same contact e-mail with the same role is treated as a repost and stored once.
 
 ### Step 2: filter and rank
 
@@ -261,7 +224,7 @@ jw checks the draft and marks it `ready` or `blocked`. It blocks:
 - salary, CTC or notice period when the post did not ask,
 - stock or desperate phrasing,
 - more than 180 words, or a subject over 90 characters or without your name and the role,
-- a missing resume line or contact address.
+- a missing resume line, or a lead with no recruiter e-mail (`no_contact`).
 
 A post that asks for date of birth, PAN or Aadhaar is flagged for you to answer personally.
 Fix a blocked draft and submit again; the earlier draft is replaced. List drafts with
@@ -302,6 +265,56 @@ jw --workspace ~/.local/share/jw/main lead-reconcile --input reconcile.json
 messages it could not match. Known gaps are tracked in
 [IMPLEMENTATION_STATUS.md](docs/implementation/IMPLEMENTATION_STATUS.md), for example bounces
 to `lead-send` e-mails are not yet suppressed automatically.
+
+## LinkedIn skills plugin
+
+A separate plugin in this repository: 12 LinkedIn skills for Claude Code and Codex that draft
+posts, comments and replies and publish only on your approval. The job pipeline does not need it.
+
+| Skill | What it does |
+| --- | --- |
+| [linkedin-post-writer](skills/linkedin-post-writer/SKILL.md) | Draft a new post from your notes with a proven hook |
+| [linkedin-comment-drafter](skills/linkedin-comment-drafter/SKILL.md) | Comment on, or reshare, someone else's post |
+| [linkedin-reply-handler](skills/linkedin-reply-handler/SKILL.md) | Reply to one existing comment |
+| [linkedin-hook-extractor](skills/linkedin-hook-extractor/SKILL.md) | Find the hook formula of a post and return a template |
+| [linkedin-humanizer](skills/linkedin-humanizer/SKILL.md) | Remove AI tells; audit a draft before posting |
+| [linkedin-profile-optimizer](skills/linkedin-profile-optimizer/SKILL.md) | Rewrite headline, About and other profile sections |
+| [linkedin-content-planner](skills/linkedin-content-planner/SKILL.md) | Seven-day content plan |
+| [linkedin-repurposer](skills/linkedin-repurposer/SKILL.md) | Turn a blog, video, newsletter or e-mail into a post |
+| [linkedin-employee-advocacy](skills/linkedin-employee-advocacy/SKILL.md) | Run a team posting programme |
+| [linkedin-thread-monitor](skills/linkedin-thread-monitor/SKILL.md) | Find your comments that got author replies |
+| [linkedin-engager-analytics](skills/linkedin-engager-analytics/SKILL.md) | Segment who liked or commented on a post |
+| [linkedin-interviewer](skills/linkedin-interviewer/SKILL.md) | Collect your stories and figures into a Story Bank |
+
+Optional connections: `APIFY_TOKEN` (read posts), `PUBLORA_API_KEY` +
+`LINKEDIN_PLATFORM_ID` (publish), `PIXFARO_TOKEN` (images). Without them you paste
+content in and copy drafts out. Names are in [.env.example](.env.example).
+
+Apify actors used by the read client:
+
+| Use case | Actor |
+| --- | --- |
+| Post body | `apimaestro/linkedin-post-detail` |
+| Post comments and replies | `apimaestro/linkedin-post-comments-replies-engagements-scraper-no-cookies` |
+| A user's recent comments | `apimaestro/linkedin-profile-comments` |
+| Post likers and commenters | `scraping_solutions/linkedin-posts-engagers-likers-and-commenters-no-cookies` |
+
+Install in Claude Code:
+
+```text
+/plugin marketplace add mdshahansha/linkedin-skills
+/plugin install linkedin-skills@linkedin-skills
+```
+
+Or in Codex, from this checkout:
+
+```bash
+python3 scripts/sync_codex_marketplace.py
+codex plugin marketplace add .
+codex plugin add linkedin-skills@linkedin-skills
+```
+
+Then ask, for example: "Draft a LinkedIn post from these notes."
 
 ## Develop
 
