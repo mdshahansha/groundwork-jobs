@@ -128,10 +128,182 @@ Then ask, for example: "Draft a LinkedIn post from these notes."
    .venv/bin/jw --workspace ~/.local/share/jw/main lead-filter --input filter.json
    ```
 
-5. Draft with `lead-draft-packet` and `lead-draft-submit`, approve with `lead-approve`,
-   send with `lead-send`. Input fields for each command are in `src/jw/cli.py`.
+5. Draft, approve and send: follow [From hiring post to recruiter e-mail](#from-hiring-post-to-recruiter-e-mail).
+   Input fields for each command are in `COMMANDS` in `src/jw/cli.py`.
 
-### Develop
+## From hiring post to recruiter e-mail
+
+This is the full path jw takes: find a hiring post, pull out the role and the recruiter's
+e-mail, write a tailored e-mail that only states your own facts, and send it once with your
+resume after you approve it.
+
+```mermaid
+flowchart LR
+    A[Hiring post<br/>LinkedIn export, RemoteOK,<br/>Himalayas, Naukri mail] --> B[lead-import / lead-fetch<br/>parse role, company,<br/>contact e-mail, years]
+    B --> C[lead-filter<br/>drop with reasons,<br/>fit score 0-100]
+    C --> D[lead-draft-packet<br/>post + your facts<br/>+ writing standard]
+    D --> E[Claude writes<br/>subject and body]
+    E --> F[lead-draft-submit<br/>claim check:<br/>ready or blocked]
+    F --> G[lead-approve<br/>you approve a batch<br/>with your resume]
+    G --> H[lead-send<br/>Gmail, once each]
+    H --> I[lead-reconcile / mail-sync<br/>Sent folder, replies, bounces]
+```
+
+Every command below is run as:
+
+```bash
+jw --workspace ~/.local/share/jw/main <command> --input <request.json>
+```
+
+Each prints one JSON object: `{"ok": true, "result": ...}` or `{"ok": false, "error": {...}}`.
+
+### Step 0: one-time setup
+
+1. Create the workspace (`init`) and connect Gmail with `tools/gmail_oauth_setup.py`, as in
+   [How to use](#how-to-use). The tool asks for `gmail.send` and `gmail.readonly`.
+2. jw reads Gmail settings from the environment, not from a file. Load the env file the setup
+   tool wrote into the shell that runs jw:
+
+   ```bash
+   set -a; . /path/to/.env; set +a
+   ```
+
+   With `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET` and `JW_GMAIL_REFRESH_TOKEN` set, jw renews
+   its own 1-hour access tokens.
+3. Write a **facts file** outside the repository: plain text with your name, current role,
+   years of experience, skills and results you can prove. Drafts may only use what is in it.
+4. Keep your **resume PDF** outside the repository. Its hash is frozen when you approve.
+
+### Step 1: get the hiring posts
+
+**LinkedIn posts.** jw does not sign in to LinkedIn or scrape it. Export posts elsewhere (for
+example an Apify run, see `APIFY_TOKEN` above) into a JSON array like this:
+
+```json
+[
+  {
+    "text": "We are hiring a Backend Engineer (2-4 years, Python). Send your CV to jobs@example.com",
+    "url": "https://www.linkedin.com/posts/example-activity-0000000000000000000",
+    "author": "Example Recruiter",
+    "posted_at": "2026-11-24T09:00:00Z"
+  }
+]
+```
+
+Only `text` is required, and it must contain the recruiter's e-mail address; a post without
+one is counted as `unparsed`, never guessed. jw extracts the role, company, location,
+experience range and skills from the text. Import the file with `import.json` set to
+`{"source": "linkedin_posts", "path": "/path/to/posts.json"}`:
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-import --input import.json
+```
+
+To read a single post by its URL, the LinkedIn skills use `lib.fetch_post(url)` through Apify;
+paste that post's text into the array above to bring it into jw.
+
+**Job feeds and Naukri mail.** `lead-fetch` reads public feeds with no account, or Naukri
+recruiter invites already in your Gmail (read-only):
+
+| `fetch.json` | Reads |
+| --- | --- |
+| `{"source": "remoteok"}` | RemoteOK public feed |
+| `{"source": "himalayas"}` | Himalayas public feed |
+| `{"source": "naukri_mail", "days": 7}` | Naukri invites in your mailbox from the last 7 days |
+
+The same contact e-mail with the same role is treated as a repost and stored once.
+
+### Step 2: filter and rank
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-filter --input filter.json
+```
+
+`filter.json` can be `{}`. Defaults: posted in the last 48 hours, a minimum experience of at
+most 5 years, and the poster has at most 4 posts in 30 days. Roles are matched against the 50
+search-term cards in `src/jw/search_terms.py`. Optional fields:
+
+| Field | Use |
+| --- | --- |
+| `applied_path` | Your `job_search_tracker.csv`; contacts and company domains already applied to are dropped |
+| `export_path` | Write the ranked list to a new CSV |
+| `policy` | Override the filter rules |
+| `limit` | How many leads to return (default 50) |
+
+Every dropped lead has a reason code, for example too old, location, experience, excluded
+stack, role or already applied. Each kept lead has a `post_id` and a fit score: 60% skill
+overlap with the policy's skill list, 20% role, 20% experience, with the matched skills listed.
+
+### Step 3: draft the e-mail with Claude
+
+For each lead you want, build the packet:
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-draft-packet --input packet.json
+```
+
+`packet.json` is `{"post_id": "<post_id>", "facts_path": "/path/to/facts.txt"}`. The packet
+holds the post, the recruiter address, your facts and the writing standard: subject with
+role and your name, under 180 words, resume attached, nothing invented.
+
+Give the packet to Claude and ask for a subject and body. Then store the result with
+`submit.json` set to `{"post_id": "<post_id>", "subject": "...", "body": "...",
+"facts_path": "/path/to/facts.txt", "candidate": "<your name>"}`:
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-draft-submit --input submit.json
+```
+
+jw checks the draft and marks it `ready` or `blocked`. It blocks:
+
+- a number that is in neither your facts nor the post,
+- a technology your facts do not list,
+- salary, CTC or notice period when the post did not ask,
+- stock or desperate phrasing,
+- more than 180 words, or a subject over 90 characters or without your name and the role,
+- a missing resume line or contact address.
+
+A post that asks for date of birth, PAN or Aadhaar is flagged for you to answer personally.
+Fix a blocked draft and submit again; the earlier draft is replaced. List drafts with
+`lead-drafts` (`{"state": "ready"}` to filter).
+
+### Step 4: approve a batch
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-approve --input approve.json
+```
+
+`approve.json` is `{"draft_ids": ["<draft_id>", "..."], "resume_path": "/path/to/resume.pdf"}`.
+Each ready draft becomes a frozen e-mail (subject, body, resume hash) with an authorisation that
+lasts 24 hours (`hours` to change it). Drafts that are not ready, already approved or suppressed
+are skipped with a reason.
+
+### Step 5: send
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-send --input send.json
+```
+
+`send.json` is `{"resume_path": "/path/to/resume.pdf"}` (optional `limit`, default 20). jw
+sends each approved e-mail once, 4 seconds apart, with the resume attached:
+
+- the resume must still match the approved hash, or the send is refused before Gmail is called;
+- if Gmail's response is lost, the e-mail is marked `unknown` and is **never** sent again;
+- `--dry-run` is refused for `lead-send`, so a test run can never send real mail.
+
+### Step 6: confirm and follow replies
+
+```bash
+jw --workspace ~/.local/share/jw/main lead-reconcile --input reconcile.json
+```
+
+`reconcile.json` can be `{}`. It settles `unknown` sends from your Sent folder. `mail-sync`
+(`{"transport": "http", "allowed": ["read"]}`) reads replies and bounces; `mail-review` lists
+messages it could not match. Known gaps are tracked in
+[IMPLEMENTATION_STATUS.md](docs/implementation/IMPLEMENTATION_STATUS.md), for example bounces
+to `lead-send` e-mails are not yet suppressed automatically.
+
+## Develop
 
 ```bash
 python3 -m pip install -r requirements.txt -r requirements-dev.txt
