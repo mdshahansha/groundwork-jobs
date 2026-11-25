@@ -720,6 +720,28 @@ Approval itself stays a CLI command or a token-protected POST.
 | R16.5 | Move candidate literals to the policy and facts | G8 | Reuse and correctness | Maintainability | M | P1 | No literals in lead modules |
 | R16.6 | Daily run that stops at approval (phase 6) | Manual chain | Habit and freshness | Freshness ≤ 24 h | M | P2 | Leads reviewed within 24 h of posting |
 
+**16.5 APIs needed.** What each step calls, what exists, and what has to be added. Costs are not
+stated because none were measured; check each provider's current pricing and terms first.
+
+| API | Steps | Used for | Status | Credential and scope | Cost and risk |
+| --- | --- | --- | --- | --- | --- |
+| Gmail API (`gmail.googleapis.com/gmail/v1`) and Google OAuth token endpoint | 1, 7 | Read Naukri invites, replies and bounces; reconcile from Sent; send approved e-mails | **Have** (`src/jw/gmail.py:247`, `:479`). jw's own send path not yet qualified live (R13.7) | Google "Desktop app" OAuth client; `gmail.readonly` and `gmail.send` (`tools/gmail_oauth_setup.py:28`); env `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET`, `JW_GMAIL_REFRESH_TOKEN` | Quota-limited; publish the consent screen "In production" or the refresh token expires after 7 days |
+| Apify API (`api.apify.com/v2`), actor `apimaestro/linkedin-post-detail` | 1 | Read one post by URL for URL capture (R7.4) | **Have** in `lib/apify_client.py:81-138`; not yet wired into jw | `APIFY_TOKEN` | Billed per run; platform-terms risk (section 5.3) |
+| Apify actor for an author's recent posts | 2 | `author_history`: cadence, hiring ratio, copied templates (R8.3) | **Needed**; not in the repo; actor not chosen | `APIFY_TOKEN`; add the actor to `scripts/check_actor_inputs.py` | Billed; terms risk; small cached batches for personal use only |
+| Apify actor for public profile basics | 2, 4 | Title and employer for author class and author credibility | **Needed**; not chosen | `APIFY_TOKEN` | Billed; store only the fields in section 10.3 |
+| Claude API (Messages API) | 4, 5, 6 | Requirement extraction, e-mail drafts, CV drafts and reviews without a person at the keyboard | **Needed only for the daily run** (R16.6). Today the host model answers jw packets by hand; jw has no API runner (`IMPLEMENTATION_STATUS.md:19`) | New `ANTHROPIC_API_KEY` | Billed per token; every output still passes jw's gates before it can be approved |
+| Official company pages over HTTPS | 3 | Careers inbox and apply link for leads without an e-mail (R10.3) | **Needed**; no key; fetch through `untrusted.check_url` | None | Respect robots rules; official pages only |
+| RemoteOK and Himalayas public feeds | 1 | Weekly apply-by-link digest | **Have** (`src/jw/leads.py:221`) | None | Free; demote from the main flow (section 17) |
+| jw loopback API (`jw.api.serve`) | 7 | Approval page (R16.4) | **Have**, no UI yet (`src/jw/api.py:127`) | Per-install token in `api-token` | Local only, bound to 127.0.0.1 |
+
+Order of need: days 1-30 use only what exists (Gmail API, Apify `fetch_post`); days 31-60 add the
+two Apify actors for step 2; days 61-90 add the Claude API for the daily run.
+
+**Not needed, do not add:** e-mail finder or verification APIs, SMTP mailbox probing, bought
+contact databases, LinkedIn private or signed-in APIs. Publora and Pixfaro serve the LinkedIn
+writing plugin, not the job pipeline; Publora only if the "warm before you write" experiment
+(section 17) runs, with every comment approved by hand.
+
 ---
 
 ## 17. Features to build, improve or remove

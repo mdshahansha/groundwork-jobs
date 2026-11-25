@@ -25,6 +25,20 @@ Codex. Full analysis: [docs/product/](docs/product/README.md). Licence: [MIT](LI
 Each image shows what the code does now (left) and what to build (right), with file references.
 The reasoning and roadmap are in the [strategic product audit](docs/product/STRATEGY_REPORT.md).
 
+**APIs the pipeline needs**
+
+| API | For steps | Status | Credential |
+| --- | --- | --- | --- |
+| Gmail API | 1 (Naukri invites), 7 (send, replies, bounces) | Have | Google OAuth client; `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET`, `JW_GMAIL_REFRESH_TOKEN` |
+| Apify: post by URL | 1 | Have (`lib/apify_client.py`), not yet wired into jw | `APIFY_TOKEN` |
+| Apify: author's recent posts, profile basics | 2, 4 | Needed; actors not chosen | `APIFY_TOKEN` |
+| Claude API | 4, 5, 6 in the unattended daily run | Needed later; today Claude Code answers by hand | `ANTHROPIC_API_KEY` |
+| Official company pages | 3 | Needed; plain HTTPS, no key | None |
+| RemoteOK, Himalayas | 1 | Have | None |
+
+Never added: e-mail finders or mailbox probing, contact databases, LinkedIn private APIs. Details
+and costs: [report section 16.5](docs/product/STRATEGY_REPORT.md#16-architecture-and-workflow-changes).
+
 ## Quick start
 
 1. Install (Python 3.11+) and create a workspace outside this repository:
