@@ -5,39 +5,32 @@ with your resume. **jw** runs locally: it pulls posts from RemoteOK, Himalayas, 
 in your Gmail and LinkedIn post exports, filters and ranks them, checks every e-mail against your
 own facts, and sends only what you approve, once.
 
+![Animated walkthrough: eight steps from a job post to a recruiter e-mail](docs/product/images/pipeline-animated.svg)
+
+[Quick start](#quick-start) · [Job sources](#job-sources) ·
+[Walkthrough](#from-job-post-to-recruiter-e-mail) · [Safety](#safety-guarantees) ·
+[Commands](#command-reference) · [Configuration](#configuration) ·
+[Troubleshooting](#troubleshooting) · [Roadmap](#roadmap-vision-versus-code) ·
+[LinkedIn plugin](#linkedin-skills-plugin)
+
 The repository also ships a [LinkedIn skills plugin](#linkedin-skills-plugin) for Claude Code and
 Codex. Full analysis: [docs/product/](docs/product/README.md). Licence: [MIT](LICENSE).
 
-## The pipeline at a glance
+## What works today
 
-![Lead pipeline: seven steps, their state today, and where 2,000 posts went](docs/product/images/overview-pipeline.svg)
+| Stage | What happens | State |
+| --- | --- | --- |
+| Intake | Posts from RemoteOK, Himalayas, Naukri invites (Gmail, read-only) and LinkedIn exports, with reposts folded | Working; Naukri tested on a synthetic invite only, not yet run live |
+| Filter | Freshness, experience, role, location, poster and already-applied rules, each drop with a reason; 0-100 fit score | Rules working; the fit score saturates (most kept leads score 100) |
+| Drafting | Claude writes from a packet; jw blocks figures and known technologies your facts do not support, stock phrases and unasked pay talk | Working; other invented claims are not detected yet |
+| Approval | You approve a batch; each e-mail is frozen with your resume's hash for 24 hours | Working; needs a published jw profile first ([Step 0](#step-0-one-time-setup)) |
+| Sending | Gmail, once each, 4 seconds apart; a lost response is never resent | Working, tested on a demo transport |
+| Follow-up | Settle unknown sends from Sent; read replies and bounces | Partial: replies and bounces to these e-mails are read but go to `mail-review`, not linked to the lead, and are not suppressed automatically |
+| Daily run, dashboard | Scheduled intake and drafting; pipeline counts | Planned |
 
-| Step | Today | Next | Detail |
-| --- | --- | --- | --- |
-| 1. Hiring signals | A post counts only if it holds an e-mail | Person-first search, signal classifier | [image](docs/product/images/step-1-hiring-signals.svg) |
-| 2. The person | Author display name only | People record, author class | [image](docs/product/images/step-2-person.svg) |
-| 3. Contact route | First e-mail in the text | Route hierarchy with source and confidence; never guessed | [image](docs/product/images/step-3-contact.svg) |
-| 4. Opportunity | Regex fields; fit score saturates | Explicit vs assumed requirements, 10-factor score | [image](docs/product/images/step-4-opportunity.svg) |
-| 5. Resume | One fixed PDF | Evidence-gated variants chosen per lead | [image](docs/product/images/step-5-resume.svg) |
-| 6. E-mail | Checked against your facts | Signal-first, stricter checker | [image](docs/product/images/step-6-email.svg) |
-| 7. Approve and track | Approved sends, once each | Replies, bounces and opt-outs linked and suppressed | [image](docs/product/images/step-7-approval-tracking.svg) |
-
-Each image shows what the code does now (left) and what to build (right), with file references.
-The reasoning and roadmap are in the [strategic product audit](docs/product/STRATEGY_REPORT.md).
-
-**APIs the pipeline needs**
-
-| API | For steps | Status | Credential |
-| --- | --- | --- | --- |
-| Gmail API | 1 (Naukri invites), 7 (send, replies, bounces) | Have | Google OAuth client; `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET`, `JW_GMAIL_REFRESH_TOKEN` |
-| Apify: post by URL | 1 | Have (`lib/apify_client.py`), not yet wired into jw | `APIFY_TOKEN` |
-| Apify: author's recent posts, profile basics | 2, 4 | Needed; actors not chosen | `APIFY_TOKEN` |
-| Claude API | 4, 5, 6 in the unattended daily run | Needed later; today Claude Code answers by hand | `ANTHROPIC_API_KEY` |
-| Official company pages | 3 | Needed; plain HTTPS, no key | None |
-| RemoteOK, Himalayas | 1 | Have | None |
-
-Never added: e-mail finders or mailbox probing, contact databases, LinkedIn private APIs. Details
-and costs: [report section 16.5](docs/product/STRATEGY_REPORT.md#16-architecture-and-workflow-changes).
+Only LinkedIn posts carry a recruiter e-mail. Feed leads are filtered and ranked like the rest
+and carry a link to apply through; Naukri leads carry no link, so apply from the invite in your
+Gmail.
 
 ## Quick start
 
@@ -93,28 +86,6 @@ link in the lead (`url`). jw never signs in to LinkedIn or scrapes it. A LinkedI
 e-mail is counted as `unparsed`, never guessed. A repost (same contact e-mail, same role) is
 stored once.
 
-## jw commands
-
-Run as `jw --workspace <dir> <command> --input <request.json>`. Each prints one JSON result.
-
-| Command | What it does |
-| --- | --- |
-| `init`, `status` | Create a workspace; show its capabilities |
-| `lead-fetch` | Pull job posts from `remoteok`, `himalayas` or `naukri_mail` |
-| `lead-import` | Load a LinkedIn post export (`linkedin_posts`) |
-| `lead-filter` | Drop poor fits with reasons; score the rest 0-100 |
-| `lead-draft-packet` | Build the brief Claude writes the e-mail from |
-| `lead-draft-submit` | Store the e-mail; block it if it claims anything not in your facts |
-| `lead-drafts` | List drafts and their state |
-| `lead-approve` | Approve a batch of ready drafts with your resume |
-| `lead-send` | Send approved e-mails through Gmail, once each |
-| `lead-reconcile` | Settle sends with an unknown result from the Sent folder |
-| `mail-sync`, `mail-review` | Read replies and bounces; list what could not be matched |
-| `tools/gmail_oauth_setup.py` | One-time Google sign-in; writes the Gmail refresh token to your env file |
-
-Other jw commands (evidence, ranking, privacy, PDFs, backups) are listed in `COMMANDS` in
-`src/jw/cli.py` and in [docs/product/FEATURES.md](docs/product/FEATURES.md).
-
 ## Benefits
 
 - Fresh posts only: old, irrelevant and already-applied leads are dropped with a reason.
@@ -166,6 +137,32 @@ Each prints one JSON object: `{"ok": true, "result": ...}` or `{"ok": false, "er
 3. Write a **facts file** outside the repository: plain text with your name, current role,
    years of experience, skills and results you can prove. Drafts may only use what is in it.
 4. Keep your **resume PDF** outside the repository. Its hash is frozen when you approve.
+5. Publish a **jw profile** once. `lead-approve` skips every draft with `profile_unpublished`
+   until you do. The profile needs your name, a contact e-mail and at least one public claim:
+
+   ```bash
+   jw --workspace ~/.local/share/jw/main source-import --input facts.txt --sensitivity public
+   ```
+
+   `source-import` prints a `source_id`. Add a claim covering part of that text, with
+   `claim.json` set to `{"source_id": "<source_id>", "start": 0, "end": <length of one fact>}`:
+
+   ```bash
+   jw --workspace ~/.local/share/jw/main claim-add --input claim.json
+   ```
+
+   Then set and publish the profile, with `profile.json` set to
+   `{"name": "<your name>", "email": "<your e-mail>"}`:
+
+   ```bash
+   jw --workspace ~/.local/share/jw/main profile-set --input profile.json
+   ```
+
+   ```bash
+   jw --workspace ~/.local/share/jw/main profile-publish
+   ```
+
+   Changing the profile later voids approvals made before the change.
 
 ### Step 1: get the hiring posts
 
@@ -285,6 +282,8 @@ sends each approved e-mail once, 4 seconds apart, with the resume attached:
 - if Gmail's response is lost, the e-mail is marked `unknown` and is **never** sent again;
 - `--dry-run` is refused for `lead-send`, so a test run can never send real mail.
 
+See [Safety guarantees](#safety-guarantees) for the animated send path.
+
 ### Step 6: confirm and follow replies
 
 ```bash
@@ -296,6 +295,134 @@ jw --workspace ~/.local/share/jw/main lead-reconcile --input reconcile.json
 messages it could not match. Known gaps are tracked in
 [IMPLEMENTATION_STATUS.md](docs/implementation/IMPLEMENTATION_STATUS.md), for example bounces
 to `lead-send` e-mails are not yet suppressed automatically.
+
+## Safety guarantees
+
+jw is built so that nothing reaches a recruiter without your approval, and each approval sends at
+most once. The rules below are enforced in code and tested; each row states its limits.
+
+| Guarantee | How it works | Where |
+| --- | --- | --- |
+| Checked claims | A draft is blocked if it states a figure found in neither your facts file nor the post, or names one of 35 known technologies your facts file lacks; other claims are not checked yet | `src/jw/lead_drafts.py` |
+| No send without you | Only `lead-approve` creates an authorisation; it expires after 24 hours by default (`hours`) | `src/jw/lead_queue.py`, `src/jw/actions.py` |
+| Exactly what you approved | Recipient, subject, body, resume hash and profile version are frozen; a changed resume or profile is refused as `auth_hash_mismatch` | `src/jw/actions.py` |
+| Never twice | The attempt is reserved before Gmail is called; a lost response becomes `send_unknown` and is never retried, and no other e-mail is sent until it is settled | `src/jw/execution.py`, `src/jw/gmail.py` |
+| Suppression list respected | Addresses added with `suppress` are refused at approval and again before any send; opt-out replies to lead e-mails are not added automatically yet | `src/jw/suppression.py`, `src/jw/actions.py`, `src/jw/execution.py` |
+| Safe test runs | `--dry-run` works on a throwaway copy; it refuses `lead-send` and mail labelling instead of calling Gmail | `src/jw/simulation.py`, `src/jw/cli.py` |
+| Workspace outside the repo | jw refuses a workspace inside the source checkout it runs from (an editable `pip install -e .`; a regular `pip install .` does not check). The facts file and resume are read from the paths you pass and are not stored; the drafting packet passes your facts text to Claude | `src/jw/store.py`, `src/jw/lead_drafts.py` |
+
+![Animated: how lead-send sends each e-mail once, even when Gmail's response is lost](docs/product/images/send-once-animated.svg)
+
+The SQLite workspace is not encrypted by jw. Keep it in a private folder that is not synced or
+shared.
+
+## Command reference
+
+Run as `jw --workspace <dir> <command> --input <request.json>`. Each prints one JSON result.
+
+| Command | What it does |
+| --- | --- |
+| `init`, `status` | Create a workspace; show its capabilities |
+| `lead-fetch` | Pull job posts from `remoteok`, `himalayas` or `naukri_mail` |
+| `lead-import` | Load a LinkedIn post export (`linkedin_posts`) |
+| `lead-filter` | Drop poor fits with reasons; score the rest 0-100 |
+| `lead-draft-packet` | Build the brief Claude writes the e-mail from |
+| `lead-draft-submit` | Store the e-mail; block it if it claims anything not in your facts |
+| `lead-drafts` | List drafts and their state |
+| `lead-approve` | Approve a batch of ready drafts with your resume |
+| `lead-send` | Send approved e-mails through Gmail, once each |
+| `lead-reconcile` | Settle sends with an unknown result from the Sent folder |
+| `mail-sync`, `mail-review` | Read replies and bounces; list what could not be matched |
+| `tools/gmail_oauth_setup.py` | One-time Google sign-in; writes the Gmail refresh token to your env file |
+
+Other jw commands (evidence, ranking, privacy, PDFs, backups) are listed in `COMMANDS` in
+`src/jw/cli.py` and in [docs/product/FEATURES.md](docs/product/FEATURES.md).
+
+## Configuration
+
+jw reads settings from the environment of the shell that runs it; it does not load `.env` files
+itself. All values below are placeholders.
+
+| Variable | Used by | Purpose |
+| --- | --- | --- |
+| `JW_GMAIL_CLIENT_ID` | `lead-fetch` (Naukri), `lead-send`, `lead-reconcile`, `mail-sync` | Google OAuth client ID, written by `tools/gmail_oauth_setup.py` |
+| `JW_GMAIL_CLIENT_SECRET` | same | Google OAuth client secret |
+| `JW_GMAIL_REFRESH_TOKEN` | same | Long-lived refresh token; jw renews 1-hour access tokens from it |
+| `JW_GMAIL_TOKEN` | `lead-fetch` (Naukri) | Fallback: a pasted read-only access token, used only when the three above are not set |
+| `JW_GMAIL_SEND_TOKEN` | `lead-send`, `lead-reconcile` | Fallback: a pasted access token, used only when the three above are not set; `lead-send` needs `gmail.send`, `lead-reconcile` needs `gmail.readonly` |
+| `GMAIL_ACCESS_TOKEN` | `mail-sync` | Fallback: a pasted read access token, used only when the three above are not set |
+| `APIFY_TOKEN`, `PUBLORA_API_KEY`, `LINKEDIN_PLATFORM_ID`, `PIXFARO_TOKEN` | LinkedIn skills plugin | Optional; see [.env.example](.env.example) |
+
+```bash
+JW_GMAIL_CLIENT_ID=<your-client-id>.apps.googleusercontent.com
+JW_GMAIL_CLIENT_SECRET=<your-client-secret>
+JW_GMAIL_REFRESH_TOKEN=<written-by-gmail_oauth_setup>
+```
+
+`lead-fetch`, `lead-send`, `lead-reconcile` and `mail-sync` also accept `token_env` to name the
+fallback access-token variable; it is ignored when the three `JW_GMAIL_*` refresh variables are
+set. Keep real values out of this repository; `testing/` is gitignored for local scratch work.
+
+## Troubleshooting
+
+| You see | Meaning | What to do |
+| --- | --- | --- |
+| `not_initialized` | No workspace at that path | Run `init` first |
+| `unsafe_workspace` | The workspace is inside the source checkout jw runs from (editable install) | Move it, for example to `~/.local/share/jw/main` |
+| `not_configured` | No Gmail credential in the environment | Load your env file: `set -a; . /path/to/.env; set +a` |
+| `unsupported_capability` | The feature is disabled, or `--dry-run` was used with `lead-send` or mail labelling | Nothing happened; run without `--dry-run` when you mean it |
+| Draft `blocked` with `no_contact` | The lead has no recruiter e-mail | Apply through the lead's `url`, or from the Naukri invite in Gmail |
+| Draft skipped with `profile_unpublished` | This workspace has no published jw profile | Do [Step 0](#step-0-one-time-setup), item 5, before `lead-approve` |
+| Draft `blocked` with `unsupported_skills` or `unsupported_numbers` | The e-mail claims something your facts do not | Remove the claim, or add it to your facts if it is true |
+| Send `refused` with `auth_hash_mismatch` | The resume file or your published profile changed after approval; that approval is now void | The same draft cannot be approved again (`lead-approve` reports `already_approved`). Submit a reworded draft with `lead-draft-submit`, then approve it with the current resume |
+| Send `send_unknown`, then other sends `refused` with `unresolved_unknown` | Gmail's response was lost; jw sends no more e-mail until that attempt is settled | Run `lead-reconcile`. If the e-mail is not in Sent, it stays unknown; jw has no command yet to settle it by hand |
+| `checks_pending: poster_unverified` | The poster's volume is known only from posts this workspace has seen | Check the poster's profile before applying |
+| Gmail sign-in stops after 7 days | The OAuth consent screen is in "Testing" | Publish it "In production" and rerun `tools/gmail_oauth_setup.py` |
+| `GmailError` traceback from `lead-fetch`, `lead-send`, `lead-reconcile` or `mail-sync` | The refresh token was revoked or expired | Rerun `tools/gmail_oauth_setup.py` (known gap: this should be a clean error) |
+
+## Roadmap: vision versus code
+
+Where the product is going, from the [strategic product audit](docs/product/STRATEGY_REPORT.md).
+
+![Lead pipeline: seven steps, their state today, and where 2,000 posts went](docs/product/images/overview-pipeline.svg)
+
+| Step | Today | Next | Detail |
+| --- | --- | --- | --- |
+| 1. Hiring signals | A post counts only if it holds an e-mail | Person-first search, signal classifier | [image](docs/product/images/step-1-hiring-signals.svg) |
+| 2. The person | Author display name only | People record, author class | [image](docs/product/images/step-2-person.svg) |
+| 3. Contact route | First e-mail in the text | Route hierarchy with source and confidence; never guessed | [image](docs/product/images/step-3-contact.svg) |
+| 4. Opportunity | Regex fields; fit score saturates | Explicit vs assumed requirements, 10-factor score | [image](docs/product/images/step-4-opportunity.svg) |
+| 5. Resume | One fixed PDF | Evidence-gated variants chosen per lead | [image](docs/product/images/step-5-resume.svg) |
+| 6. E-mail | Checked against your facts | Signal-first, stricter checker | [image](docs/product/images/step-6-email.svg) |
+| 7. Approve and track | Approved sends, once each | Replies, bounces and opt-outs linked and suppressed | [image](docs/product/images/step-7-approval-tracking.svg) |
+
+Each image shows what the code does now (left) and what to build (right), with file references.
+The reasoning and roadmap are in the [strategic product audit](docs/product/STRATEGY_REPORT.md).
+
+**APIs the pipeline needs**
+
+| API | For steps | Status | Credential |
+| --- | --- | --- | --- |
+| Gmail API | 1 (Naukri invites), 7 (send, replies, bounces) | Have | Google OAuth client; `JW_GMAIL_CLIENT_ID`, `JW_GMAIL_CLIENT_SECRET`, `JW_GMAIL_REFRESH_TOKEN` |
+| Apify: post by URL | 1 | Have (`lib/apify_client.py`), not yet wired into jw | `APIFY_TOKEN` |
+| Apify: author's recent posts, profile basics | 2, 4 | Needed; actors not chosen | `APIFY_TOKEN` |
+| Claude API | 4, 5, 6 in the unattended daily run | Needed later; today Claude Code answers by hand | `ANTHROPIC_API_KEY` |
+| Official company pages | 3 | Needed; plain HTTPS, no key | None |
+| RemoteOK, Himalayas | 1 | Have | None |
+
+Never added: e-mail finders or mailbox probing, contact databases, LinkedIn private APIs. Details
+and costs: [report section 16.5](docs/product/STRATEGY_REPORT.md#16-architecture-and-workflow-changes).
+
+## Documentation
+
+| Document | What it covers |
+| --- | --- |
+| [docs/implementation/LEAD_PIPELINE.md](docs/implementation/LEAD_PIPELINE.md) | Lead pipeline phases, live run results, filter and send details |
+| [docs/implementation/IMPLEMENTATION_STATUS.md](docs/implementation/IMPLEMENTATION_STATUS.md) | All 25 tickets, open blockers and the 2026-11-20 audit |
+| [docs/product/STRATEGY_REPORT.md](docs/product/STRATEGY_REPORT.md) | Strategic product audit: vision versus code, ranking model, roadmap |
+| [docs/product/](docs/product/README.md) | Feature analysis, user guide, architecture, market positioning |
+| [docs/product/images/](docs/product/images/README.md) | How the diagrams and animations are built |
+| [docs/architecture/](docs/architecture/HLD.md) | Design, data model, security and privacy |
 
 ## LinkedIn skills plugin
 

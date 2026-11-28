@@ -9,7 +9,9 @@ python3 docs/product/images/build_diagrams.py
 ```
 
 Standard library only. The output is plain SVG with system fonts, a `<title>` and a `<desc>`,
-so it renders on GitHub and reads aloud in screen readers.
+so it renders on GitHub and reads aloud in screen readers. The two animated images use CSS
+keyframes inside the SVG (no script). For viewers who prefer reduced motion, or where CSS animation
+is unavailable, they show a static summary instead.
 
 | Image | Shows |
 | --- | --- |
@@ -21,6 +23,8 @@ so it renders on GitHub and reads aloud in screen readers.
 | [step-5-resume.svg](step-5-resume.svg) | One fixed PDF, versus gated variants and per-lead tailoring |
 | [step-6-email.svg](step-6-email.svg) | Checker gaps, versus a signal-first anatomy and a stricter checker |
 | [step-7-approval-tracking.svg](step-7-approval-tracking.svg) | Unlinked sends, versus linked outcomes, suppression and metrics |
+| [pipeline-animated.svg](pipeline-animated.svg) | Animated: the eight steps jw runs today, from job post to recruiter e-mail (top of the README) |
+| [send-once-animated.svg](send-once-animated.svg) | Animated: how `lead-send` sends each e-mail once when Gmail's response is lost |
 
 ## How to read a step image
 

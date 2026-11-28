@@ -637,11 +637,210 @@ def overview_image():
     return canvas(fy + 20 + M, "Lead pipeline: vision versus code", desc, "\n".join(out))
 
 
+# --- Animated flows (README) ---------------------------------------------------------------
+# CSS animation inside the SVG: GitHub shows it through <img>, scripts never run. Each stage is lit
+# in turn on one shared clock; a dot runs along each connector. A static caption is shown when the
+# viewer prefers reduced motion or does not animate, so the image always reads correctly.
+
+TAG = {"jw": (*KIND["now"][:2], "JW"), "claude": (*KIND["reuse"][:2], "CLAUDE"),
+       "you": (*KIND["rule"][:2], "YOU"), "gmail": (*KIND["new"][:2], "GMAIL")}
+
+
+def animated_flow(title, subtitle, stages, cols, static, seconds=2.5):
+    n = len(stages)
+    gap_x, gap_y = 6 * SPACE, 6 * SPACE
+    node_w = (W - 2 * M - (cols - 1) * gap_x) / cols
+    inner = node_w - 4 * SPACE
+
+    def body(stage, x, y):
+        parts, cy = [], y + 2 * SPACE + 10
+        accent, tint, label = TAG[stage["tag"]]
+        parts.append(f'<circle cx="{x + 2 * SPACE + 10:.1f}" cy="{cy:.1f}" r="13" fill="{COLOR["brand"]}"/>')
+        parts.append(text(x + 2 * SPACE + 10, cy + 5, str(stage["n"]), 13, COLOR["surface"], 700, anchor="middle"))
+        svg, _ = chip(x + node_w - 2 * SPACE, cy - 9, label, accent, tint, anchor="end")
+        parts.append(svg)
+        cy += 13 + 2 * SPACE + 6
+        for line in wrap(stage["title"], SIZE["node"] + 2, inner, "bold"):
+            parts.append(text(x + 2 * SPACE, cy, line, SIZE["node"] + 2, COLOR["ink"], 700))
+            cy += LEADING["node"] + 2
+        for line in wrap(stage["cmd"], SIZE["ref"] + 0.5, inner, "mono"):
+            parts.append(text(x + 2 * SPACE, cy, line, SIZE["ref"] + 0.5, COLOR["brand"], 600, face=MONO))
+            cy += LEADING["ref"]
+        cy += 6
+        for line in wrap(stage["detail"], SIZE["body"], inner):
+            parts.append(text(x + 2 * SPACE, cy, line, SIZE["body"], COLOR["text"]))
+            cy += LEADING["body"]
+        return parts, cy
+
+    top = M + 76
+    node_h = max(body(s, 0, 0)[1] for s in stages) + 2 * SPACE
+    rows = -(-n // cols)
+    pos = []
+    for i in range(n):
+        r, c = divmod(i, cols)
+        c = c if r % 2 == 0 else cols - 1 - c   # snake: the next row runs back the other way
+        pos.append((M + c * (node_w + gap_x), top + r * (node_h + gap_y)))
+
+    cycle = n * seconds
+    share = 100 / n
+    css = [f"@keyframes on{{0%{{opacity:0}}{1.2:.2f}%{{opacity:1}}{share - 1.2:.2f}%{{opacity:1}}"
+           f"{share:.2f}%{{opacity:0}}100%{{opacity:0}}}}",
+           "@keyframes hide{0%,100%{opacity:0}}",
+           "@keyframes grow{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}",
+           f".hl,.cap{{opacity:0;animation:on {cycle:g}s linear infinite}}",
+           f".bar{{transform-box:fill-box;transform-origin:left center;animation:grow {cycle:g}s linear infinite}}",
+           ".st{animation:hide 1s infinite}",
+           ".dot{opacity:0}",
+           "@media (prefers-reduced-motion: reduce){.hl,.cap,.dot,.bar{animation:none!important}"
+           ".cap,.dot{opacity:0}.st{animation:none;opacity:1}}"]
+    out = [text(M, M + 20, title, SIZE["title"], COLOR["ink"], 700)]
+    for k, line in enumerate(wrap(subtitle, SIZE["subtitle"], W - 2 * M)):
+        out.append(text(M, M + 46 + 20 * k, line, SIZE["subtitle"], COLOR["muted"]))
+    # Connectors and their travelling dots.
+    for i in range(n - 1):
+        (x1, y1), (x2, y2) = pos[i], pos[i + 1]
+        if y1 == y2:
+            right = x2 > x1
+            sx = x1 + node_w if right else x1
+            ex = x2 if right else x2 + node_w
+            sy = ey = y1 + node_h / 2
+            head = (f'M{ex - 7 if right else ex + 7:.1f},{ey - 5:.1f} l{7 if right else -7},5 '
+                    f'l{-7 if right else 7},5 Z')
+        else:
+            sx = ex = x1 + node_w / 2
+            sy, ey = y1 + node_h, y2
+            head = f'M{ex - 5:.1f},{ey - 7:.1f} l5,7 l5,-7 Z'
+        out.append(f'<path d="M{sx:.1f},{sy:.1f} L{ex:.1f},{ey:.1f}" stroke="{COLOR["line"]}" stroke-width="2"/>'
+                   f'<path d="{head}" fill="{COLOR["line"]}"/>')
+        a = (i + 0.55) * share
+        b = (i + 0.95) * share
+        dx, dy = ex - sx, ey - sy
+        css.append(f"@keyframes m{i}{{0%,{a:.2f}%{{opacity:0;transform:translate(0px,0px)}}"
+                   f"{a + 0.01:.2f}%{{opacity:1;transform:translate(0px,0px)}}"
+                   f"{b:.2f}%{{opacity:1;transform:translate({dx:.1f}px,{dy:.1f}px)}}"
+                   f"{b + 0.5:.2f}%,100%{{opacity:0;transform:translate({dx:.1f}px,{dy:.1f}px)}}}}")
+        css.append(f".d{i}{{animation:m{i} {cycle:g}s linear infinite}}")
+        out.append(f'<circle class="dot d{i}" cx="{sx:.1f}" cy="{sy:.1f}" r="6" fill="{COLOR["brand"]}"/>')
+    # Stage cards with their highlight ring.
+    for i, stage in enumerate(stages):
+        x, y = pos[i]
+        out.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{node_w:.1f}" height="{node_h:.1f}" '
+                   f'rx="{RADIUS["node"]}" fill="{COLOR["panel"]}" stroke="{COLOR["border"]}"/>')
+        out.append(f'<rect class="hl" style="animation-delay:{i * seconds:g}s" x="{x:.1f}" y="{y:.1f}" '
+                   f'width="{node_w:.1f}" height="{node_h:.1f}" rx="{RADIUS["node"]}" fill="#EEF4FF" '
+                   f'stroke="{COLOR["brand"]}" stroke-width="3"/>')
+        out.extend(body(stage, x, y)[0])
+    # Caption panel: one caption per stage on the same clock, plus the static fallback.
+    cy = top + rows * node_h + (rows - 1) * gap_y + 4 * SPACE
+    lines_max = max(len(wrap(f'{s["n"]}. {s["caption"]}', SIZE["subtitle"] + 1, W - 2 * M - 4 * SPACE))
+                    for s in stages)
+    static_lines = wrap(static, SIZE["subtitle"] + 1, W - 2 * M - 4 * SPACE)
+    cap_h = 3 * SPACE + 22 * max(lines_max, len(static_lines)) + 10
+    out.append(f'<rect x="{M}" y="{cy}" width="{W - 2 * M}" height="{cap_h}" rx="{RADIUS["node"]}" '
+               f'fill="{COLOR["panel"]}" stroke="{COLOR["border"]}"/>')
+    for i, stage in enumerate(stages):
+        group = [text(M + 2 * SPACE, cy + 3 * SPACE + 6 + 22 * k, line, SIZE["subtitle"] + 1,
+                      COLOR["ink"])
+                 for k, line in enumerate(wrap(f'{stage["n"]}. {stage["caption"]}', SIZE["subtitle"] + 1,
+                                               W - 2 * M - 4 * SPACE))]
+        out.append(f'<g class="cap" style="animation-delay:{i * seconds:g}s">' + "".join(group) + "</g>")
+    out.append('<g class="st">' + "".join(text(M + 2 * SPACE, cy + 3 * SPACE + 6 + 22 * k, line,
+                                               SIZE["subtitle"] + 1, COLOR["ink"])
+                                          for k, line in enumerate(static_lines)) + "</g>")
+    by = cy + cap_h + 2 * SPACE
+    out.append(f'<rect x="{M}" y="{by}" width="{W - 2 * M}" height="6" rx="3" fill="{COLOR["track"]}"/>')
+    out.append(f'<rect class="bar" x="{M}" y="{by}" width="{W - 2 * M}" height="6" rx="3" fill="{COLOR["brand"]}"/>')
+    legend_y = by + 4 * SPACE
+    x = M
+    for key in [k for k in TAG if any(s["tag"] == k for s in stages)]:
+        accent, tint, label = TAG[key]
+        svg, width = chip(x, legend_y - 12, label, accent, tint)
+        out.append(svg)
+        words = {"jw": "jw command", "claude": "Claude writes", "you": "your decision", "gmail": "Gmail call"}[key]
+        out.append(text(x + width + SPACE, legend_y + 1, words, SIZE["ref"] + 1, COLOR["muted"]))
+        x += width + SPACE + len(words) * (SIZE["ref"] + 1) * GLYPH["sans"] + 4 * SPACE
+    height = legend_y + 2 * SPACE + M
+    desc = title + ". " + " ".join(f'Step {s["n"]}, {s["title"]} ({s["cmd"]}): {s["caption"]}' for s in stages)
+    svg = canvas(height, title, desc, "<style>" + "".join(css) + "</style>\n" + "\n".join(out))
+    return svg
+
+
+PIPELINE_ANIMATED = [
+    {"n": 1, "tag": "jw", "cmd": "lead-fetch / lead-import", "title": "Bring in job posts",
+     "detail": "RemoteOK, Himalayas, Naukri invites in Gmail, LinkedIn post exports",
+     "caption": "Parsers pull out the role, company, location and years (and skills, from the feeds and "
+                "Naukri). Only LinkedIn posts carry a recruiter e-mail. A repost (same e-mail, same role) is "
+                "stored once."},
+    {"n": 2, "tag": "jw", "cmd": "lead-filter", "title": "Keep what fits",
+     "detail": "Posted within 48 h, at most 5 years asked, role, location and already-applied rules",
+     "caption": "Every dropped lead gets a reason code. Each kept lead gets a 0-100 fit score with its "
+                "matched skills, and a link where the source gives one."},
+    {"n": 3, "tag": "jw", "cmd": "lead-draft-packet", "title": "Build the brief",
+     "detail": "The post, the recruiter address, your facts file and the writing standard",
+     "caption": "Your facts file is the only source of your claims. Keep it outside the repository; jw "
+                "reads it from the path you pass each time and stores neither the file nor the path."},
+    {"n": 4, "tag": "claude", "cmd": "Claude", "title": "Write the e-mail",
+     "detail": "Subject and body from the packet, under 180 words",
+     "caption": "Claude writes the subject and body from the packet when you ask it. Nothing is sent here."},
+    {"n": 5, "tag": "jw", "cmd": "lead-draft-submit", "title": "Check the draft",
+     "detail": "Blocks unsupported figures and known technologies, unasked salary or notice, stock phrases",
+     "caption": "The draft is ready or blocked, with reasons. A lead with no recruiter e-mail is blocked as "
+                "no_contact: apply through its link, or the Naukri invite, instead."},
+    {"n": 6, "tag": "you", "cmd": "lead-approve", "title": "You approve a batch",
+     "detail": "Each ready draft is frozen with your resume's hash for 24 hours",
+     "caption": "Your approval is the only way a draft becomes sendable. Drafts that are not ready are "
+                "skipped with a reason."},
+    {"n": 7, "tag": "gmail", "cmd": "lead-send", "title": "Send once",
+     "detail": "Gmail, 4 s apart, resume attached; a lost response is never resent",
+     "caption": "Each approval is spent once. A resume that changed since approval is refused before Gmail "
+                "is called."},
+    {"n": 8, "tag": "gmail", "cmd": "lead-reconcile / mail-sync", "title": "Confirm and follow up",
+     "detail": "Settle unknown sends from Sent; read replies and bounces",
+     "caption": "Unknown sends are matched in your Sent folder by recipient, subject and the X-JW-Action-Id "
+                "header. mail-sync reads replies and bounces."},
+]
+
+SEND_ANIMATED = [
+    {"n": 1, "tag": "you", "cmd": "lead-approve", "title": "Freeze the e-mail",
+     "detail": "Recipient, subject, body and resume hash in one authorisation, valid 24 h",
+     "caption": "Approval freezes exactly what will be sent. If the resume file changes afterwards, the "
+                "send is refused."},
+    {"n": 2, "tag": "jw", "cmd": "lead-send", "title": "Reserve the attempt",
+     "detail": "Recipient, content and resume must match the approval; it is spent before Gmail is called",
+     "caption": "The attempt is recorded before the provider call, so a crash cannot lead to a second send."},
+    {"n": 3, "tag": "gmail", "cmd": "Gmail API", "title": "Send",
+     "detail": "One call, resume attached, action ID in the X-JW-Action-Id header",
+     "caption": "Accepted: the draft is marked sent and the attempt keeps the Gmail thread ID. Rejected: the "
+                "attempt is marked failed with the reason; the draft stays ready but its approval is spent."},
+    {"n": 4, "tag": "gmail", "cmd": "timeout", "title": "Response lost",
+     "detail": "Gmail may have sent it, but jw never heard back",
+     "caption": "A timeout or dropped connection marks the attempt unknown, not failed."},
+    {"n": 5, "tag": "jw", "cmd": "lead-send (next run)", "title": "Never resent",
+     "detail": "The approval is already spent, so the draft is skipped",
+     "caption": "Running lead-send again cannot send a duplicate: an unknown attempt is never retried."},
+    {"n": 6, "tag": "jw", "cmd": "lead-reconcile", "title": "Settle from Sent",
+     "detail": "Search Sent by recipient and subject, match the header, mark it sent",
+     "caption": "If the e-mail is in your Sent folder with the same action ID, it is marked sent. If not, it "
+                "stays unknown, and lead-send refuses every other e-mail (unresolved_unknown) until it is "
+                "settled."},
+]
+
+
 def main():
     (OUT / "overview-pipeline.svg").write_text(overview_image(), encoding="utf-8")
     for step in STEPS:
         (OUT / step["file"]).write_text(step_image(step), encoding="utf-8")
-    print("Wrote", 1 + len(STEPS), "SVG files to", OUT)
+    (OUT / "pipeline-animated.svg").write_text(animated_flow(
+        "From job post to recruiter e-mail", "What jw does today, one step at a time. jw and its database run on "
+        "your machine; Claude reads the packet when it writes; no e-mail is sent until you approve.", PIPELINE_ANIMATED, 4,
+        "Eight steps: bring in posts, filter, build the brief, Claude writes, check figures, technologies and "
+        "wording, you approve, send once through Gmail, then confirm from Sent and read replies."), encoding="utf-8")
+    (OUT / "send-once-animated.svg").write_text(animated_flow(
+        "How lead-send sends each e-mail once", "The path when Gmail's response is lost: the e-mail is never "
+        "sent twice, and lead-reconcile settles it from your Sent folder.", SEND_ANIMATED, 3,
+        "Approval freezes the e-mail; the attempt is reserved before Gmail is called; a lost response is "
+        "marked unknown and never resent; lead-reconcile settles it from Sent."), encoding="utf-8")
+    print("Wrote", 3 + len(STEPS), "SVG files to", OUT)
 
 
 if __name__ == "__main__":
